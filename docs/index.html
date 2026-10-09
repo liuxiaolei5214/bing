@@ -216,7 +216,7 @@ document.addEventListener('keydown', e => {
 
 // 首次加载
 loadAll().then(() => {
-    fetch('json/bing_wallpaper.json?t=' + Date.now())
+    fetch('json/today.json?t=' + Date.now())
         .then(r => r.json())
         .then(d => { allList = d.sort((a,b)=>b.date.localeCompare(a.date)); });
 });
