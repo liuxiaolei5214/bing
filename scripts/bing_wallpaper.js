@@ -2,7 +2,14 @@
 // bing_wallpaper.js
 // Bing 壁纸 + 百科抓取（GitHub Actions 版）
 // 纯 HTTP + 随机 MUID/GUID
-// 输出：today.json / later.json / bing_wallpaper.json / year/zh.YYYY.json / month/YYYY/YYYY-MM.json / history.json / index.json
+// 输出：
+//   docs/json/today.json
+//   docs/json/later.json
+//   docs/json/bing_wallpaper.json
+//   docs/json/history.json
+//   docs/json/index.json
+//   docs/json/year/zh.YYYY.json
+//   docs/json/month/YYYY/YYYY-MM.json
 
 const fs = require('fs');
 const path = require('path');
@@ -77,6 +84,10 @@ function ensureDirectoryExists(dir) {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
+}
+
+function hasDescription(item) {
+  return !!(item && item.description && String(item.description).trim().length > 0);
 }
 
 function cleanBingBackstageUrl(rawUrl) {
@@ -316,11 +327,12 @@ async function fetchEncyclopedia(backstageUrl) {
 }
 
 // ===================== 批量处理百科 =====================
+// existDateSet: 已有 description 的日期集合（只有这些日期才会被跳过）
 async function attachEncyclopedia(baseList, existDateSet) {
   const needFetchList = baseList.filter(item => !existDateSet.has(item.date));
   const skipList = baseList.filter(item => existDateSet.has(item.date));
   writeLog(`📊 本次待处理统计：`);
-  writeLog(`已有数据跳过: ${skipList.length} 条`);
+  writeLog(`已有描述跳过: ${skipList.length} 条`);
   writeLog(`需要抓取百科: ${needFetchList.length} 条`);
 
   if (needFetchList.length === 0) {
@@ -355,7 +367,7 @@ async function attachEncyclopedia(baseList, existDateSet) {
   return [...skipList, ...resultList];
 }
 
-// ===================== 年份文件 upsert =====================
+// ===================== 年份文件 upsert（带保护） =====================
 function upsertYearFile(yearDir, year, newItem, logs) {
   ensureDirectoryExists(yearDir);
   const yearFile = path.join(yearDir, `zh.${year}.json`);
@@ -372,9 +384,38 @@ function upsertYearFile(yearDir, year, newItem, logs) {
   }
 
   const idx = existing.findIndex(x => x.date === newItem.date);
+
   if (idx >= 0) {
-    existing[idx] = newItem;
-    logs.push(`🔁 ${yearFile} 更新已有日期 ${newItem.date}`);
+    const oldItem = existing[idx];
+    const oldHasDesc = hasDescription(oldItem);
+    const newHasDesc = hasDescription(newItem);
+
+    // 保护：旧的有描述，新的没有 → 保留旧的
+    if (oldHasDesc && !newHasDesc) {
+      logs.push(`🛡️ ${yearFile} 保留已有 description（新数据为空）: ${newItem.date}`);
+      return existing;
+    }
+
+    // 旧的没有，新的有 → 补充
+    if (!oldHasDesc && newHasDesc) {
+      existing[idx] = newItem;
+      logs.push(`🔁 ${yearFile} 补充 description: ${newItem.date}`);
+    }
+    // 两边都有 → 用更长的（更完整）
+    else if (oldHasDesc && newHasDesc) {
+      if (newItem.description.length >= oldItem.description.length) {
+        existing[idx] = newItem;
+        logs.push(`🔁 ${yearFile} 更新（更长 description）: ${newItem.date}`);
+      } else {
+        logs.push(`⏭️ ${yearFile} 保留更长 description: ${newItem.date}`);
+        return existing;
+      }
+    }
+    // 两边都没有 → 无实质变化
+    else {
+      logs.push(`⏭️ ${yearFile} 无实质变化: ${newItem.date}`);
+      return existing;
+    }
   } else {
     existing.push(newItem);
     logs.push(`➕ ${yearFile} 追加日期 ${newItem.date}`);
@@ -527,7 +568,7 @@ function generateIndex(yearDir, jsonDir, logs) {
       process.exit(1);
     }
 
-    // 2. 全量文件（近 KEEP_DAYS 天）
+    // 2. 读取全量文件（近 KEEP_DAYS 天）
     const fullJsonOutputPath = path.join(JSON_DIR, CONFIG.FULL_JSON_NAME);
 
     let oldData = [];
@@ -541,24 +582,53 @@ function generateIndex(yearDir, jsonDir, logs) {
       }
     }
 
-    const existDateSet = new Set(oldData.map(x => x.date));
-    const fullNewList = await attachEncyclopedia(wallBaseData, existDateSet);
-    const appendList = fullNewList.filter(item => !existDateSet.has(item.date));
+    // ✅ 关键修复：只有"已有 description"的日期才跳过抓取
+    const existDateSet = new Set(
+      oldData.filter(hasDescription).map(x => x.date)
+    );
+    log(`📊 bing_wallpaper.json 已有描述的日期: ${existDateSet.size} 条（共 ${oldData.length} 条）`);
 
-    // 合并：新数据优先
+    // 3. 抓百科
+    const fullNewList = await attachEncyclopedia(wallBaseData, existDateSet);
+
+    // 4. 合并旧数据 + 新数据（新数据优先）
     const dateMap = new Map();
     oldData.forEach(item => dateMap.set(item.date, item));
-    appendList.forEach(item => dateMap.set(item.date, item));
+
+    fullNewList.forEach(item => {
+      const oldItem = dateMap.get(item.date);
+      const oldHasDesc = hasDescription(oldItem);
+      const newHasDesc = hasDescription(item);
+
+      // 保护：旧的有描述，新的没有 → 保留旧的
+      if (oldHasDesc && !newHasDesc) {
+        log(`🛡️ 合并保留旧描述: ${item.date}`);
+        return;
+      }
+
+      // 旧的有、新的也有 → 用更长的
+      if (oldHasDesc && newHasDesc) {
+        if (item.description.length >= oldItem.description.length) {
+          dateMap.set(item.date, item);
+        }
+        return;
+      }
+
+      // 其它情况都用新的
+      dateMap.set(item.date, item);
+    });
+
     let finalData = Array.from(dateMap.values());
     finalData.sort((a, b) => b.date.localeCompare(a.date));
 
+    // 裁剪到 KEEP_DAYS（bing_wallpaper.json 只保留近期）
     const limitedData = finalData.slice(0, CONFIG.KEEP_DAYS);
     const cleanedData = cleanBackstageUrl(limitedData);
 
     fs.writeFileSync(fullJsonOutputPath, JSON.stringify(cleanedData, null, 2), 'utf8');
     log(`✅ 全量文件已输出：${fullJsonOutputPath} (${cleanedData.length} 条)`);
 
-    // 3. today.json
+    // 5. today.json
     const beijingNow = getBeijingDate();
     const todayDateStr = formatBeijingDate(beijingNow);
     let todayFilterData = cleanedData.filter(item => item.date === todayDateStr);
@@ -570,39 +640,46 @@ function generateIndex(yearDir, jsonDir, logs) {
     fs.writeFileSync(todayJsonOutputPath, JSON.stringify(todayFilterData, null, 2), 'utf8');
     log(`✅ today.json 已输出 (${todayFilterData.length} 条)`);
 
-    // 4. later.json
+    // 6. later.json
     const laterFilterData = cleanedData.length > 0 ? [cleanedData[0]] : [];
     const laterJsonOutputPath = path.join(JSON_DIR, CONFIG.LATER_JSON_NAME);
     fs.writeFileSync(laterJsonOutputPath, JSON.stringify(laterFilterData, null, 2), 'utf8');
     log(`✅ later.json 已输出 (${laterFilterData.length} 条)`);
 
-    // 5. 年份文件（本次抓到的所有新数据都写入对应年份）
+    // ========================================================
+    // 7. 年份文件（使用 finalData 全量合并后的数据，确保 description 完整）
+    // ========================================================
     log(`\n==================== 写入年份文件 ====================`);
-    for (const item of fullNewList) {
+    for (const item of finalData) {
       const year = item.date.slice(0, 4);
-      const { BackstageUrl, ...cleanItem } = item;
+
+      // 保留 BackstageUrl，方便后续回填
+      // 如果不想在年份文件里暴露 BackstageUrl，取消下一行注释
+      // const { BackstageUrl, ...cleanItem } = item;
+      const cleanItem = item;
+
       upsertYearFile(YEAR_DIR, year, cleanItem, logs);
     }
 
-    // 6. 按月拆分
+    // 8. 按月拆分
     log(`\n==================== 拆分月份文件 ====================`);
     splitIntoMonthFiles(YEAR_DIR, MONTH_DIR, logs);
 
-    // 7. history.json
+    // 9. history.json
     log(`\n==================== 生成 history.json ====================`);
     const historyCount = generateHistory(YEAR_DIR, JSON_DIR, logs);
 
-    // 8. index.json
+    // 10. index.json
     log(`\n==================== 生成 index.json ====================`);
     generateIndex(YEAR_DIR, JSON_DIR, logs);
 
-    // 9. 日志展示
+    // 11. 日志展示
     log(`\n===今日数据展示===`);
     log(JSON.stringify(todayFilterData[0] || {}, null, 2));
     log(`===未来数据展示===`);
     log(JSON.stringify(laterFilterData[0] || {}, null, 2));
 
-    // 10. 写入 GITHUB_ENV（供 workflow 后续步骤读取）
+    // 12. 写入 GITHUB_ENV（供 workflow 后续步骤读取）
     const latestItem = todayFilterData[0] || cleanedData[0] || {};
     const envFile = process.env.GITHUB_ENV;
     if (envFile) {
