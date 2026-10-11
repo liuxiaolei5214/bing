@@ -2,9 +2,9 @@ name: Bing Wallpaper
 
 on:
   schedule:
-    # 每天 UTC 23:00（北京时间 07:00）
+    # UTC 23:00 = 北京时间 07:00
     - cron: '0 23 * * *'
-  workflow_dispatch:  # 支持手动触发
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -22,19 +22,96 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Run script
         run: node scripts/bing_wallpaper.js
 
+      - name: Touch index.html to refresh cache
+        run: |
+          mkdir -p docs
+          touch docs/index.html
+          export TZ='Asia/Shanghai'
+          echo "✅ 缓存已刷新 (北京时间)  $(date '+%Y-%m-%d %H:%M:%S')" >> docs/cache.log
+
+      - name: Send WeChat notification
+        env:
+          TITLE: ${{ env.TITLE }}
+          SUBTITLE: ${{ env.SUBTITLE }}
+          DATE: ${{ env.DATE }}
+          BING_URL: ${{ env.BING_URL }}
+          DESC_LEN: ${{ env.DESC_LEN }}
+          HISTORY_COUNT: ${{ env.HISTORY_COUNT }}
+        run: |
+          node -e '
+          const https = require("https");
+          const webhook = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=fbc3ee80-bc01-439f-965b-6e8806e39351";
+          const images = [
+            "https://image.lei5214.cc.cd/img/2026/03/1.jpg","https://image.lei5214.cc.cd/img/2026/03/2.jpg",
+            "https://image.lei5214.cc.cd/img/2026/03/3.jpg","https://image.lei5214.cc.cd/img/2026/03/4.jpg",
+            "https://image.lei5214.cc.cd/img/2026/03/5.jpg","https://image.lei5214.cc.cd/img/2026/03/6.jpg",
+            "https://image.lei5214.cc.cd/img/2026/03/7.jpg","https://image.lei5214.cc.cd/img/2026/03/8.jpg",
+            "https://image.lei5214.cc.cd/img/2026/03/9.jpg","https://image.lei5214.cc.cd/img/2026/03/10.jpg",
+            "https://image.lei5214.cc.cd/img/2026/03/11.jpg","https://image.lei5214.cc.cd/img/2026/03/12.jpg",
+            "https://image.lei5214.cc.cd/img/2026/03/13.jpg","https://image.lei5214.cc.cd/img/2026/03/14.jpg",
+            "https://image.lei5214.cc.cd/img/2026/03/15.jpg","https://image.lei5214.cc.cd/img/2026/03/16.jpg"
+          ];
+          const pick = images[Math.floor(Math.random() * images.length)];
+          const title = "🎉 Bing壁纸 · " + (process.env.DATE || "");
+          const desc = "主标：" + (process.env.SUBTITLE || "") +
+                       "\n副标：" + (process.env.TITLE || "") +
+                       "\n描述：" + (process.env.DESC_LEN || 0) + " 字符" +
+                       "\n历史：" + (process.env.HISTORY_COUNT || 0) + " 张";
+          const payload = JSON.stringify({
+            msgtype: "news",
+            news: { articles: [{
+              title: title,
+              description: desc,
+              url: "https://bingapi.lxl5214.dpdns.org/",
+              picurl: pick
+            }] }
+          });
+          const u = new URL(webhook);
+          const req = https.request({
+            hostname: u.hostname,
+            path: u.pathname + u.search,
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Content-Length": Buffer.byteLength(payload)
+            }
+          }, res => {
+            res.on("data", () => {});
+            res.on("end", () => console.log("📱 通知发送完成, status=" + res.statusCode));
+          });
+          req.on("error", e => console.error("通知异常:", e.message));
+          req.write(payload);
+          req.end();
+          '
+
+      - name: Sync external API
+        env:
+          NEED_WRITE: ${{ env.NEED_WRITE }}
+        run: |
+          if [ "$NEED_WRITE" != "True" ]; then
+            echo "⏭️ 无变化，跳过同步"
+            exit 0
+          fi
+          echo "📡 调用外部同步API..."
+          curl -s -X GET "https://bing.ll1524.cc.cd/api/sync-github?key=ll1524ql2026" || echo "⚠️ API 调用失败，继续执行"
+
       - name: Commit & Push
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/json/
+
+          git add docs/
+
           if git diff --staged --quiet; then
             echo "无变化，跳过提交"
           else
-            git commit -m "auto update bing wallpaper $(date -u +'%Y-%m-%d %H:%M:%S') UTC"
+            git commit -m "auto update $(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M:%S')"
             git push
           fi
