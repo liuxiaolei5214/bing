@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>壁纸归档 · 光影回顾</title>
+    <link rel="icon" href="https://bingimg.lei5214.cc.cd/logo.avif">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 0;
+            pointer-events: none;
+        }
+        body > * {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .top-bar {
+            max-width: 1400px;
+            margin: 0 auto 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            gap: 20px;
+            background: rgba(22, 22, 22, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 12px;
+        }
+        
+        .filters {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 12px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .filter-label {
+            font-size: 16px;
+            color: #ffffff;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .filter-input {
+            width: 160px;
+            height: 30px;
+            padding: 0 10px;
+            border: 2px solid #4d96ff;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            cursor: pointer;
+            background: #4a4a4a; 
+            color: #ffffff;
+            transition: border-color 0.3s;
+        }
+        .filter-input:hover { border-color: #6aafff; }
+        .filter-input:focus { border-color: #7abfff; box-shadow: 0 0 0 3px rgba(77,150,255,0.2); }
+        .filter-input::placeholder { color: #666; }
+        
+        .btn-filter-reset {
+            padding: 6px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+            background: #6c757d;
+            color: #fff;
+            white-space: nowrap;
+        }
+        .btn-filter-reset:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+        
+        .stats {
+            color: #ffffff;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        .stats span {
+            color: #ffffff;
+            font-weight: 600;
+        }
+        
+        .btn-home {
+            padding: 6px 16px;
+            border: 1px solid #4d96ff;
+            border-radius: 6px;
+            background: transparent;
+            color: #4d96ff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .btn-home:hover {
+            background: #4d96ff;
+            color: #fff;
+        }
+        /* ===== 月份选择弹窗 ===== */
+        .date-mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            display: none;
+            z-index: 999;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+        .date-mask.show {
+            display: block;
+        }
+        
+        .date-popup {
+            position: absolute;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            width: 340px;
+            overflow: hidden;
+            animation: popupFade 0.2s ease;
+            border: 1px solid #e8e8e8;
+        }
+        
+        @keyframes popupFade {
+            from {
+                opacity: 0;
+                transform: translateY(-8px) scale(0.97);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        /* ===== 头部：月份、年份视图完全相同布局 ===== */
+        .popup-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 50px;
+            padding: 10px 16px 10px 16px;
+            min-height: 42px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #fafafa;
+        }
+        
+        .popup-header-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .popup-year-nav {
+            display: flex;
+            align-items: center;
+            gap: 50px;
+            justify-content: center;
+            background: transparent;
+            padding: 0;
+        }
+        
+        .popup-year-btn,
+        .popup-year-page-btn {
+            background: transparent;
+            border: none;
+            color: #666;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0 10px;
+            transition: color 0.2s;
+            line-height: 1;
+        }
+        
+        .popup-year-btn:hover,
+        .popup-year-page-btn:hover {
+            color: #4d96ff;
+        }
+        
+        .popup-year-text {
+            font-size: 17px;
+            color: #333;
+            font-weight: 600;
+            min-width: 70px;
+            text-align: center;
+            cursor: pointer;
+            padding: 2px 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        
+        .popup-year-text:hover {
+            background: #f0f5ff;
+        }
+        
+        /* ===== 网格容器：月份、年份完全相同参数 ===== */
+        .month-grid,
+        .year-grid-popup {
+            padding: 4px 10px 8px 10px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            background: #ffffff;
+        }
+        
+        /* ===== 格子单元格：月份、年份样式完全统一 ===== */
+        .month-cell,
+        .year-cell {
+            text-align: center;
+            padding: 16px 0;
+            font-size: 14px;
+            color: #555;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            background: transparent;
+        }
+        
+        .month-cell:hover,
+        .year-cell:hover {
+            background: #f0f5ff;
+            color: #4d96ff;
+        }
+        
+        .month-cell.active,
+        .year-cell.active {
+            background: #4d96ff;
+            color: #fff;
+        }
+        
+        /* 无数据禁用年份 */
+        .year-cell.disabled {
+            opacity: 0.35;
+            cursor: default;
+            color: #999;
+        }
+        .year-cell.disabled:hover {
+            background: transparent;
+            color: #999;
+        }
+        
+        /* 空白占位格子，维持4行高度 */
+        .year-cell.empty {
+            cursor: default;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        .card {
+            background: rgba(22, 22, 22, 0.5);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        /* ===== 图片包装器 ===== */
+        .card .img-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #1a1a1a;
+            overflow: hidden;
+        }
+        .card .img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .card .img-wrapper img.loaded {
+            opacity: 1;
+        }
+        .card .img-wrapper .placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #555;
+            font-size: 14px;
+            background: #1a1a1a;
+        }
+        .card .img-wrapper .placeholder .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #333;
+            border-top-color: #4d96ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        .card .img-wrapper .placeholder .error-text {
+            color: #e74c3c;
+            font-size: 13px;
+        }
+
+        .card .info {
+            padding: 10px 14px 14px;
+        }
+        .card .info .date {
+            font-size: 0.8rem;
+            color: #ffffff;
+            font-weight: 500;
+        }
+        .card .info .title {
+            font-size: 0.85rem;
+            color: #ffffff;
+            font-weight: 600;
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .card .info .btn-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .card .info .btn-group .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 14px;
+            color: #fff;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: background 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        .card .info .btn-group .download-btn svg {
+            flex-shrink: 0;
+        }
+        .card .info .btn-group .btn-4k {
+            background: #4d96ff;
+        }
+        .card .info .btn-group .btn-4k:hover {
+            background: #3a7bd5;
+        }
+        .card .info .btn-group .btn-1080p {
+            background: #6c757d;
+        }
+        .card .info .btn-group .btn-1080p:hover {
+            background: #5a6268;
+        }
+        .card .info .btn-group .btn-720p {
+            background: #17a2b8;
+        }
+        .card .info .btn-group .btn-720p:hover {
+            background: #138496;
+        }
+        .card .info .btn-group .btn-vertical {
+            background: #6c757d;
+        }
+        .card .info .btn-group .btn-vertical:hover {
+            background: #5a6268;
+        }
+        .card .info .btn-group .btn-download {
+            background: #6c757d;
+        }
+        .card .info .btn-group .btn-download:hover {
+            background: #5a6268;
+        }
+        .loading,
+        .empty {
+            text-align: center;
+            padding: 60px 0;
+            color: #666;
+            font-size: 1rem;
+            grid-column: 1 / -1;
+        }
+        .loading::after {
+            content: "";
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-left: 10px;
+            border: 3px solid #2a2a2a;
+            border-top-color: #4d96ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== 加载进度提示 ===== */
+        #loadProgress {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            z-index: 1000;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        #loadProgress.hidden {
+            opacity: 0;
+        }
+
+        /* ================================================================
+           模态框 - 全屏显示（PC + 移动统一）
+           ================================================================ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .modal-overlay.open {
+            display: flex;
+            opacity: 1;
+        }
+        .modal-box {
+            background: #0d0d0d;
+            width: 100vw;
+            height: 100vh;
+            max-width: 100vw;
+            max-height: 100vh;
+            overflow: hidden;
+            box-shadow: none;
+            padding: 0;
+            position: relative;
+            transform: scale(0.98);
+            transition: transform 0.4s ease;
+            border-radius: 0;
+        }
+        .modal-overlay.open .modal-box {
+            transform: scale(1);
+        }
+        .modal-image {
+            width: 100%;
+            height: 100%;
+            background: #0b0b0b;
+            overflow: hidden;
+            position: relative;
+        }
+        /* ===== 关键修改：图片铺满全屏 ===== */
+        .modal-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            background: #000;
+        }
+        /* 底部渐变遮罩（保护文字） */
+        .modal-image::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(to top, 
+                rgba(0, 0, 0, 0.92) 0%, 
+                rgba(0, 0, 0, 0.6) 30%,
+                rgba(0, 0, 0, 0.2) 60%,
+                transparent 100%
+            );
+            pointer-events: none;
+            z-index: 1;
+        }
+        .modal-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 30px 48px 40px;
+            z-index: 2;
+            max-height: 50%;
+            pointer-events: none;
+        }
+        .modal-content > * {
+            pointer-events: auto;
+        }
+        
+        .modal-scroll-desc {
+            max-height: 50vh;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.15) transparent;
+            margin-top: 8px;
+            padding-right: 8px;
+        }
+        .modal-scroll-desc::-webkit-scrollbar {
+            width: 4px;
+        }
+        .modal-scroll-desc::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .modal-scroll-desc::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+        }
+        .modal-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+            color: #fff;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+            letter-spacing: 1px;
+        }
+        .modal-subtitle {
+            display: none !important;
+        }
+        .modal-desc {
+            font-size: 0.95rem;
+            line-height: 1.8;
+            opacity: 0.92;
+            white-space: normal;
+            word-break: break-word;
+            color: #f0f0f0;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+        }
+        .modal-desc p {
+            text-indent: 2em;
+            margin: 0;
+            padding: 0;
+            line-height: 1.9;
+        }
+        .modal-desc p + p {
+            margin-top: 0;
+        }
+        /* ===== 关闭按钮 - 固定在右上角 ===== */
+        .modal-close {
+            position: fixed;
+            top: 24px;
+            right: 28px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            line-height: 1;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.06) rotate(90deg);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        footer {
+            max-width: 1400px;
+            margin: 40px auto 0;
+            text-align: center;
+            padding: 20px 0 10px;
+            border-top: 1px solid rgba(26, 26, 26, 0.8);
+            color: #ffffff;
+            font-size: 0.85rem;
+        }
+        
+        /* ===== 移动端适配 ===== */
+        @media (max-width: 768px) {
+            .top-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            .btn-home {
+                margin-right: auto;
+                justify-content: flex-start;
+            }
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+                flex-shrink: 0;
+            }
+            .filter-item {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                width: 100%;
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            .filter-label {
+                font-size: 16px;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+            .filter-input {
+                flex: 1;
+                width: auto;
+                min-width: 0;
+            }
+            .btn-filter-reset {
+                width: auto !important;
+                flex-shrink: 0;
+                margin-top: 0;
+                padding: 6px 14px;
+            }
+            .stats {
+                width: 100%;
+                text-align: left;
+                white-space: nowrap;
+                margin-top: 4px;
+            }
+            .grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 12px;
+            }
+            /* ===== 模态框移动端 ===== */
+            .modal-overlay {
+                padding: 0 !important;
+                background: rgba(0, 0, 0, 0.95);
+            }
+            .modal-box {
+                max-width: 100%;
+                max-height: 100vh !important;
+                height: 100vh !important;
+                margin: 0 !important;
+                border-radius: 0 !important;
+                display: flex;
+                flex-direction: column;
+            }
+            .modal-image {
+                flex: 1;
+                aspect-ratio: unset !important;
+                width: 100%;
+                height: 100%;
+            }
+            .modal-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                background: #000;
+            }
+            .modal-content {
+                padding: 16px 20px 20px;
+                max-height: 50%;
+            }
+            .modal-scroll-desc {
+                max-height: 30vh;
+            }
+            .modal-title {
+                font-size: 1.3rem;
+            }
+            .modal-desc {
+                font-size: 0.85rem;
+                line-height: 1.7;
+            }
+            .modal-image::after {
+                height: 55%;
+            }
+            .modal-close {
+                top: 16px;
+                right: 16px;
+                width: 44px;
+                height: 44px;
+                font-size: 1.6rem;
+                z-index: 100;
+            }
+            .date-popup {
+                width: 92%;
+                left: 4% !important;
+            }
+            .month-grid {
+                padding: 12px 14px 16px;
+                gap: 4px;
+            }
+            .month-cell {
+                padding: 8px 0;
+                font-size: 13px;
+            }
+            .popup-header {
+                padding: 10px 14px;
+                gap: 12px;
+            }
+            .popup-year-text {
+                font-size: 16px;
+                min-width: 60px;
+            }
+            .popup-year-btn {
+                font-size: 18px;
+            }
+            .popup-year-nav {
+                gap: 12px;
+            }
+            .year-grid-popup {
+                grid-template-columns: repeat(3, 1fr);
+                padding: 10px 12px 14px;
+            }
+            .year-cell {
+                font-size: 13px;
+                padding: 6px 0;
+            }
+        }
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            .grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                gap: 10px;
+            }
+            .card .info {
+                padding: 6px 10px 10px;
+            }
+            .card .info .date {
+                font-size: 0.7rem;
+            }
+            .card .info .title {
+                font-size: 0.75rem;
+            }
+            .card .info .btn-group .download-btn {
+                font-size: 0.65rem;
+                padding: 3px 10px;
+            }
+            .modal-content {
+                padding: 12px 14px 16px;
+                max-height: 48%;
+            }
+            .modal-scroll-desc {
+                max-height: 25vh;
+            }
+            .modal-title {
+                font-size: 1.1rem;
+            }
+            .modal-desc {
+                font-size: 0.8rem;
+                line-height: 1.6;
+            }
+            .modal-image::after {
+                height: 60%;
+            }
+            .modal-close {
+                top: 12px;
+                right: 12px;
+                width: 38px;
+                height: 38px;
+                font-size: 1.4rem;
+            }
+            .date-popup {
+                width: 95%;
+                left: 2.5% !important;
+            }
+            .year-grid-popup {
+                grid-template-columns: repeat(3, 1fr);
+                padding: 8px 10px 12px;
+            }
+            .year-cell {
+                font-size: 12px;
+                padding: 5px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <a href="/" class="btn-home">🏠 返回首页</a>
+        <div class="filters">
+            <div class="filter-item">
+                <span class="filter-label">选择年月：</span>
+                <input class="filter-input" id="monthInput" placeholder="请选择" readonly>
+                <button class="btn-filter-reset" onclick="resetAllFilters()">↺ 重置筛选</button>
+            </div>
+            <div class="stats">共 <span id="totalCount">0</span> 张壁纸</div>
+        </div>
+    </div>
+    <div class="grid" id="grid">
+        <div class="loading">加载壁纸数据中...</div>
+    </div>
+    <footer>
+        <p>数据来源：Bing 每日壁纸 · 永久归档 · 仅供个人欣赏</p>
+    </footer>
+
+    <!-- ===== 全屏模态框 ===== -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+            <button class="modal-close" id="modalClose">✕</button>
+            <div class="modal-image">
+                <img id="modalImg" src="" alt="壁纸大图" />
+            </div>
+            <div class="modal-content">
+                <div class="modal-title" id="modalTitle"></div>
+                <div class="modal-scroll-desc">
+                    <div class="modal-subtitle" id="modalSubtitle"></div>
+                    <div class="modal-desc" id="modalDesc"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="date-mask" id="mask">
+        <div class="date-popup" id="popup"></div>
+    </div>
+
+    <!-- ===== 加载进度提示 ===== -->
+    <div id="loadProgress" class="hidden">加载图片 0/0</div>
+
+    <script>
+        // ===== 背景图控制 =====
+        // ✅ 手动控制：true = 使用当天壁纸，false = 使用固定壁纸
+        var USE_TODAY_BG = true;
+
+        // 固定壁纸 URL（备用）
+        var FIXED_BG = 'https://image.lei5214.cc.cd/img/2026/08/10.jpg';
+
+        // 设置背景图
+        function setBackground(url) {
+            document.body.style.backgroundImage = 'url(' + url + ')';
+            console.log('🖼️ 背景图已切换:', url);
+        }
+
+        // ===== 路径配置（统一管理，方便以后改） =====
+        var JSON_BASE = 'json';
+        var PATH_TODAY = JSON_BASE + '/today.json';
+        var PATH_INDEX = JSON_BASE + '/index.json';
+        var PATH_YEAR = function (year) { return JSON_BASE + '/year/zh.' + year + '.json'; };
+        var PATH_MONTH = function (year, month) {
+            return JSON_BASE + '/month/' + year + '/' + year + '-' + month + '.json';
+        };
+
+       // ===== 月份文件共享缓存（同一"年-月"只 fetch 一次） =====
+        var monthFileCache = {};   // { "2026-09": Promise<Array> }
+        
+        function fetchMonthFile(year, month) {
+            var key = year + '-' + month;
+            if (!monthFileCache[key]) {
+                var url = PATH_MONTH(year, month);
+                console.log('📥 请求月份文件:', url);
+                monthFileCache[key] = fetch(url)
+                    .then(function (resp) {
+                        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                        return resp.json();
+                    })
+                    .catch(function (err) {
+                        delete monthFileCache[key];
+                        throw err;
+                    });
+            } else {
+                console.log('♻️ 复用月份文件缓存:', key);
+            }
+            return monthFileCache[key];
+        }
+
+        // ===== 当前日期工具 =====
+        function getTodayStr() {
+            var now = new Date();
+            var y = now.getFullYear();
+            var m = String(now.getMonth() + 1).padStart(2, '0');
+            var d = String(now.getDate()).padStart(2, '0');
+            return y + '-' + m + '-' + d;
+        }
+
+        async function loadTodayBg() {
+            try {
+                var todayStr = getTodayStr();
+                var year = todayStr.substring(0, 4);
+                var month = todayStr.substring(5, 7);
+        
+                var item = null;
+        
+                // 1) 优先读当月月份文件（共享缓存）
+                try {
+                    var monthData = await fetchMonthFile(year, month);
+                    if (Array.isArray(monthData) && monthData.length > 0) {
+                        item = monthData.find(function (d) { return d.date === todayStr; });
+                        if (item) {
+                            console.log('✅ 背景数据来源: 月份文件 (当天)');
+                        } else {
+                            console.warn('⚠️ 月份文件中没有当天数据:', todayStr);
+                        }
+                    }
+                } catch (e) {
+                    console.warn('⚠️ 读取月份文件失败:', e.message);
+                }
+        
+                // 2) 回退 today.json
+                if (!item) {
+                    try {
+                        var resp2 = await fetch(PATH_TODAY);
+                        if (resp2.ok) {
+                            var todayData = await resp2.json();
+                            if (Array.isArray(todayData) && todayData.length > 0) {
+                                item = todayData[0];
+                            } else if (todayData && typeof todayData === 'object') {
+                                item = todayData;
+                            }
+                            if (item) {
+                                console.log('✅ 背景数据来源:', PATH_TODAY, '(兜底)');
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('⚠️ 读取 today.json 失败:', e.message);
+                    }
+                }
+        
+                // 3) 设置背景
+                if (item && item.bing_url) {
+                    var bgUrl = item.bing_url.replace('_UHD.jpg', '_1920x1080.jpg');
+                    setBackground(bgUrl);
+                } else {
+                    console.warn('⚠️ 未找到当天数据，使用固定壁纸');
+                    setBackground(FIXED_BG);
+                }
+            } catch (e) {
+                console.warn('⚠️ 加载背景失败，使用固定壁纸:', e.message);
+                setBackground(FIXED_BG);
+            }
+        }
+
+        // 初始化背景
+        if (USE_TODAY_BG) {
+            loadTodayBg();
+        } else {
+            setBackground(FIXED_BG);
+        }
+
+        // ============================================================
+        // 0. 图片加载管理器（并发模式 - 每批6张 + 重试）
+        // ============================================================
+        var imageLoader = {
+            imgElements: [],
+            total: 0,
+            loaded: 0,
+            progressEl: null,
+            isCancelled: false,
+            isLoading: false,
+            loadTimeoutIds: [],
+            concurrency: 6,
+            maxRetries: 3,
+            retryDelay: 1000,
+
+            init: function () {
+                this.progressEl = document.getElementById('loadProgress');
+            },
+
+            cancelAll: function () {
+                this.isCancelled = true;
+                this.isLoading = false;
+                this.loadTimeoutIds.forEach(function (id) {
+                    clearTimeout(id);
+                });
+                this.loadTimeoutIds = [];
+                this.hideProgress();
+            },
+
+            showProgress: function () {
+                if (this.progressEl) {
+                    this.progressEl.classList.remove('hidden');
+                }
+            },
+
+            hideProgress: function () {
+                if (this.progressEl) {
+                    this.progressEl.classList.add('hidden');
+                }
+            },
+
+            updateProgress: function (loaded, total) {
+                if (this.progressEl) {
+                    this.progressEl.textContent = '加载图片 ' + loaded + '/' + total;
+                    if (loaded === total) {
+                        var that = this;
+                        setTimeout(function () {
+                            that.hideProgress();
+                        }, 800);
+                    }
+                }
+            },
+
+            loadImageWithRetry: function (imgElement, url, retryCount) {
+                var that = this;
+                retryCount = retryCount || 0;
+
+                return new Promise(function (resolve, reject) {
+                    if (that.isCancelled) {
+                        reject(new Error('已取消'));
+                        return;
+                    }
+
+                    var timeoutId = setTimeout(function () {
+                        reject(new Error('超时'));
+                    }, 15000);
+                    that.loadTimeoutIds.push(timeoutId);
+
+                    imgElement.src = url;
+                    imgElement.onload = function () {
+                        clearTimeout(timeoutId);
+                        imgElement.classList.add('loaded');
+                        var wrapper = imgElement.closest('.img-wrapper');
+                        if (wrapper) {
+                            var placeholder = wrapper.querySelector('.placeholder');
+                            if (placeholder) placeholder.style.display = 'none';
+                        }
+                        resolve();
+                    };
+                    imgElement.onerror = function () {
+                        clearTimeout(timeoutId);
+                        if (retryCount < that.maxRetries) {
+                            var nextRetry = retryCount + 1;
+                            var delay = that.retryDelay * (retryCount + 1);
+                            var wrapper = imgElement.closest('.img-wrapper');
+                            if (wrapper) {
+                                var placeholder = wrapper.querySelector('.placeholder');
+                                if (placeholder) {
+                                    placeholder.innerHTML = '<div style="text-align:center;color:#f39c12;font-size:12px;">🔄 重试 ' + nextRetry + '/' + that.maxRetries + '...</div>';
+                                }
+                            }
+                            setTimeout(function () {
+                                that.loadImageWithRetry(imgElement, url, nextRetry)
+                                    .then(resolve)
+                                    .catch(reject);
+                            }, delay);
+                        } else {
+                            imgElement.style.display = 'none';
+                            var wrapper = imgElement.closest('.img-wrapper');
+                            if (wrapper) {
+                                var placeholder = wrapper.querySelector('.placeholder');
+                                if (placeholder) {
+                                    placeholder.innerHTML = '<span class="error-text">❌ 加载失败</span>';
+                                }
+                            }
+                            reject(new Error('加载失败（已重试 ' + that.maxRetries + ' 次）'));
+                        }
+                    };
+                });
+            },
+
+            loadImage: function (imgElement, url) {
+                return this.loadImageWithRetry(imgElement, url, 0);
+            },
+
+            loadImagesBatch: function (imgList, onProgress) {
+                var that = this;
+
+                this.cancelAll();
+                this.isCancelled = false;
+                this.isLoading = true;
+                this.imgElements = imgList;
+                this.total = imgList.length;
+                this.loaded = 0;
+                this.loadTimeoutIds = [];
+                var concurrency = this.concurrency;
+
+                if (this.total === 0) {
+                    this.isLoading = false;
+                    this.hideProgress();
+                    return Promise.resolve({ loaded: 0, total: 0 });
+                }
+
+                this.showProgress();
+                this.updateProgress(0, this.total);
+
+                return new Promise(function (resolve) {
+                    var index = 0;
+                    var activeCount = 0;
+                    var completed = false;
+
+                    function loadNext() {
+                        if (that.isCancelled || completed || !that.isLoading) {
+                            return;
+                        }
+
+                        if (that.loaded >= that.total) {
+                            completed = true;
+                            that.isLoading = false;
+                            that.updateProgress(that.total, that.total);
+                            resolve({ loaded: that.loaded, total: that.total });
+                            return;
+                        }
+
+                        if (index >= that.total || activeCount >= concurrency) {
+                            return;
+                        }
+
+                        var item = that.imgElements[index];
+                        var img = item.element;
+                        var url = item.url;
+                        index++;
+                        activeCount++;
+
+                        that.loadImage(img, url).then(function () {
+                            that.loaded++;
+                            activeCount--;
+                            that.updateProgress(that.loaded, that.total);
+                            if (onProgress) onProgress(that.loaded, that.total);
+                            loadNext();
+                        }).catch(function () {
+                            activeCount--;
+                            that.updateProgress(that.loaded, that.total);
+                            if (onProgress) onProgress(that.loaded, that.total);
+                            loadNext();
+                        });
+
+                        if (index < that.total && activeCount < concurrency) {
+                            loadNext();
+                        }
+                    }
+
+                    var batchSize = Math.min(concurrency, imgList.length);
+                    for (var i = 0; i < batchSize; i++) {
+                        loadNext();
+                    }
+                });
+            }
+        };
+
+        // ============================================================
+        // 1. URL 处理工具
+        // ============================================================
+
+        function isJuemeiUrl(url) {
+            if (!url) return false;
+            return url.includes('juemeibizhi.com');
+        }
+
+        function isBingCdnUrl(url) {
+            if (!url) return false;
+            return url.includes('cn.bing.com') || url.includes('bing.com');
+        }
+
+        function isCdnBimgUrl(url) {
+            if (!url) return false;
+            return url.includes('cdn.bimg.cc');
+        }
+
+        function getImageUrl(item) {
+            var bingUrl = item.bing_url || '';
+            if (isJuemeiUrl(bingUrl)) {
+                return bingUrl;
+            }
+            return bingUrl;
+        }
+
+        function get4kUrl(item) {
+            var bingUrl = item.bing_url || '';
+            if (isJuemeiUrl(bingUrl)) return bingUrl;
+            if (isCdnBimgUrl(bingUrl)) return bingUrl;
+            if (isBingCdnUrl(bingUrl) && bingUrl.includes('_UHD')) {
+                return bingUrl;
+            }
+            return bingUrl;
+        }
+
+        function get1080pUrl(item) {
+            var bingUrl = item.bing_url || '';
+            if (isJuemeiUrl(bingUrl)) return bingUrl;
+            if (isCdnBimgUrl(bingUrl)) return bingUrl;
+            if (isBingCdnUrl(bingUrl)) {
+                if (bingUrl.includes('_UHD')) {
+                    return bingUrl.replace('_UHD', '_1920x1080');
+                }
+                if (bingUrl.includes('_1920x1080')) {
+                    return bingUrl;
+                }
+            }
+            return bingUrl;
+        }
+
+        function get720pUrl(item) {
+            var bingUrl = item.bing_url || '';
+            if (isJuemeiUrl(bingUrl)) return bingUrl;
+            if (isCdnBimgUrl(bingUrl)) return bingUrl;
+            if (isBingCdnUrl(bingUrl)) {
+                if (bingUrl.includes('_UHD')) {
+                    return bingUrl.replace('_UHD', '_1280x720');
+                }
+                if (bingUrl.includes('_1920x1080')) {
+                    return bingUrl.replace('_1920x1080', '_1280x720');
+                }
+            }
+            return bingUrl;
+        }
+
+        function getVerticalUrl(item) {
+            var bingUrl = item.bing_url || '';
+            if (isJuemeiUrl(bingUrl)) return bingUrl;
+            if (isCdnBimgUrl(bingUrl)) return bingUrl;
+            if (isBingCdnUrl(bingUrl)) {
+                if (bingUrl.includes('_UHD')) {
+                    return bingUrl.replace('_UHD', '_vertical');
+                }
+                if (bingUrl.includes('_1920x1080')) {
+                    return bingUrl.replace('_1920x1080', '_vertical');
+                }
+            }
+            return bingUrl;
+        }
+
+        function getImageType(item) {
+            var url = item.bing_url || '';
+            if (isJuemeiUrl(url)) return 'normal';
+            if (isCdnBimgUrl(url)) return 'normal';
+            if (isBingCdnUrl(url)) {
+                if (url.includes('_UHD')) return 'uhd';
+                if (url.includes('_1920x1080')) return 'fhd';
+            }
+            return 'normal';
+        }
+
+        // ============================================================
+        // 2. 月份控件
+        // ============================================================
+        (function () {
+            var today = new Date();
+            var currentYear = today.getFullYear();
+            var currentMonth = today.getMonth() + 1;
+            var state = {
+                year: currentYear,
+                month: currentMonth,
+                view: 'month',
+                yearPage: 0
+            };
+            var mask = document.getElementById('mask');
+            var popup = document.getElementById('popup');
+            var monthInput = document.getElementById('monthInput');
+            var monthNames = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
+
+            function closePopup() {
+                mask.classList.remove('show');
+            }
+
+            function openPopup() {
+                var rect = monthInput.getBoundingClientRect();
+                mask.classList.add('show');
+                state.view = 'month';
+                var startYear = 2010;
+                var targetIdx = currentYear - startYear;
+                state.yearPage = Math.floor(targetIdx / 12);
+                popup.style.left = Math.max(0, rect.left) + 'px';
+                popup.style.top = (rect.bottom + 6 + window.scrollY) + 'px';
+                renderPopup();
+            }
+
+            function renderPopup() {
+                var html = '';
+
+                if (state.view === 'year') {
+                    var allYears = [];
+                    var startYear = 2010;
+                    var endYear = new Date().getFullYear() + 100;
+                    for (var y = startYear; y <= endYear; y++) {
+                        allYears.push(y);
+                    }
+
+                    var totalPages = Math.ceil(allYears.length / 12);
+                    var currentPage = state.yearPage;
+                    if (currentPage >= totalPages) currentPage = totalPages - 1;
+                    if (currentPage < 0) currentPage = 0;
+                    state.yearPage = currentPage;
+
+                    var pageStart = currentPage * 12;
+                    var pageEnd = Math.min(pageStart + 12, allYears.length);
+                    var pageYears = allYears.slice(pageStart, pageEnd);
+
+                    html += '<div class="popup-header">';
+                    html += '<button class="popup-year-page-btn" id="yearPagePrev">‹</button>';
+                    html += '<span class="popup-header-title">选择年份</span>';
+                    html += '<button class="popup-year-page-btn" id="yearPageNext">›</button>';
+                    html += '</div>';
+                    html += '<div class="year-grid-popup">';
+
+                    for (var i = 0; i < pageYears.length; i++) {
+                        var y = pageYears[i];
+                        var active = (y === state.year) ? 'active' : '';
+                        var disabledCls = (y > currentYear) ? 'disabled' : '';
+                        html += '<div class="year-cell ' + active + ' ' + disabledCls + '" data-year="' + y + '">' + y + '年</div>';
+                    }
+                    html += '</div>';
+                } else {
+                    html += '<div class="popup-header">';
+                    html += '<div class="popup-year-nav" style="flex:1;justify-content:center;">';
+                    html += '<button class="popup-year-btn" id="popupYearPrev">‹</button>';
+                    html += '<span class="popup-year-text" id="popupYearText">' + state.year + '年</span>';
+                    html += '<button class="popup-year-btn" id="popupYearNext">›</button>';
+                    html += '</div>';
+                    html += '</div>';
+                    html += '<div class="month-grid">';
+                    for (var i = 0; i < monthNames.length; i++) {
+                        var num = i + 1;
+                        var cls = (state.month === num) ? 'active' : '';
+                        html += '<div class="month-cell ' + cls + '" data-val="' + num + '">' + monthNames[i] + '</div>';
+                    }
+                    html += '</div>';
+                }
+
+                popup.innerHTML = html;
+                if (state.view === 'year') {
+                    document.getElementById('yearPagePrev').onclick = function (e) {
+                        e.stopPropagation();
+                        if (state.yearPage > 0) {
+                            state.yearPage--;
+                            renderPopup();
+                        }
+                    };
+                    document.getElementById('yearPageNext').onclick = function (e) {
+                        e.stopPropagation();
+                        var totalYears = new Date().getFullYear() + 100 - 2010 + 1;
+                        var totalPages = Math.ceil(totalYears / 12);
+                        if (state.yearPage < totalPages - 1) {
+                            state.yearPage++;
+                            renderPopup();
+                        }
+                    };
+
+                    popup.querySelectorAll('.year-cell').forEach(function (el) {
+                        el.onclick = function () {
+                            if (this.classList.contains('disabled')) return;
+                            var year = parseInt(this.dataset.year);
+                            state.year = year;
+                            state.view = 'month';
+                            renderPopup();
+                            updateMonthInput();
+                        };
+                    });
+                } else {
+                    document.getElementById('popupYearText').onclick = function () {
+                        state.view = 'year';
+                        var startYear = 2010;
+                        var targetIdx = state.year - startYear;
+                        state.yearPage = Math.floor(targetIdx / 12);
+                        renderPopup();
+                    };
+
+                    document.getElementById('popupYearPrev').onclick = function (e) {
+                        e.stopPropagation();
+                        state.year--;
+                        document.getElementById('popupYearText').textContent = state.year + '年';
+                        updateMonthInput();
+                        renderPopup();
+                    };
+                    document.getElementById('popupYearNext').onclick = function (e) {
+                        e.stopPropagation();
+                        if ((state.year + 1) > currentYear) return;
+                        state.year++;
+                        document.getElementById('popupYearText').textContent = state.year + '年';
+                        updateMonthInput();
+                        renderPopup();
+                    };
+                    popup.querySelectorAll('.month-cell').forEach(function (el) {
+                        el.onclick = function () {
+                            state.month = parseInt(el.dataset.val);
+                            popup.querySelectorAll('.month-cell').forEach(function (c) {
+                                c.classList.remove('active');
+                            });
+                            el.classList.add('active');
+                            updateMonthInput();
+                            loadData();
+                            closePopup();
+                        };
+                    });
+                }
+            }
+
+            function updateMonthInput() {
+                var monthStr = String(state.month).padStart(2, '0');
+                monthInput.value = state.year + ' - ' + monthStr;
+            }
+
+            monthInput.onclick = function () { openPopup(); };
+            mask.onclick = function (e) { if (e.target === mask) closePopup(); };
+
+            window.resetAllFilters = function () {
+                var now = new Date();
+                state.year = now.getFullYear();
+                state.month = now.getMonth() + 1;
+                monthInput.value = '';
+                loadData();
+            };
+
+            function loadData() {
+                var year = state.year;
+                var month = String(state.month).padStart(2, '0');
+                loadMonthData(year, month);
+            }
+
+            monthInput.placeholder = '请选择';
+            window.addEventListener('DOMContentLoaded', function () {
+                setTimeout(function () {
+                    loadData();
+                }, 100);
+            });
+
+            window.filterState = {
+                getYear: function () { return state.year; },
+                getMonth: function () { return state.month; }
+            };
+        })();
+
+        // ============================================================
+        // 3. 工具函数
+        // ============================================================
+        function getMonthFromDate(dateStr) {
+            if (dateStr && dateStr.length >= 7) {
+                return dateStr.substring(5, 7);
+            }
+            return '未知';
+        }
+
+        function formatTitle(item) {
+            var mainTitle = item.subtitle || '';
+            var subTitle = item.title || '';
+            if (mainTitle && subTitle && mainTitle !== subTitle) {
+                return mainTitle + ' | ' + subTitle;
+            }
+            if (mainTitle) {
+                return mainTitle;
+            }
+            if (subTitle) {
+                return subTitle;
+            }
+            return '壁纸';
+        }
+
+        var DOWNLOAD_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+
+        // ============================================================
+        // 4. 数据加载
+        // ============================================================
+        var loadedData = {};
+        var allAvailableYears = [];
+
+        // 加载索引（保留，用于可选地展示年份列表）
+        async function loadIndex() {
+            try {
+                var resp = await fetch(PATH_INDEX);
+                if (!resp.ok) {
+                    console.warn('⚠️ 索引文件不存在');
+                    return false;
+                }
+                var index = await resp.json();
+                if (index && index.years && index.years.length > 0) {
+                    index.years.sort(function (a, b) { return parseInt(b.year) - parseInt(a.year); });
+                    allAvailableYears = index.years.map(function (item) { return item.year; });
+                    console.log('📅 从索引加载年份:', allAvailableYears);
+                    return true;
+                }
+                return false;
+            } catch (e) {
+                console.warn('⚠️ 加载索引失败:', e.message);
+                return false;
+            }
+        }
+
+        // 加载年份文件（作为月份文件缺失时的回退）
+        async function loadYearData(year) {
+            if (loadedData[year]) {
+                return loadedData[year];
+            }
+            try {
+                var resp = await fetch(PATH_YEAR(year));
+                if (!resp.ok) {
+                    console.warn('⚠️ ' + year + ' 年文件不存在');
+                    return [];
+                }
+                var data = await resp.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    loadedData[year] = data;
+                    return data;
+                }
+                return [];
+            } catch (e) {
+                console.warn('加载 ' + year + ' 年数据失败:', e.message);
+                return [];
+            }
+        }
+
+        // ============================================================
+        // 5. 筛选与渲染
+        // ============================================================
+        function filterImagesByMonth(images, month) {
+            if (!images || images.length === 0) return [];
+            return images.filter(function (img) {
+                var m = getMonthFromDate(img.date);
+                return m === month;
+            });
+        }
+
+        function renderGrid(images) {
+            var grid = document.getElementById('grid');
+            var totalCount = document.getElementById('totalCount');
+            if (!images || images.length === 0) {
+                grid.innerHTML = '<div class="empty">😅 没有找到匹配的壁纸</div>';
+                totalCount.textContent = '0';
+                return;
+            }
+            totalCount.textContent = images.length;
+
+            imageLoader.cancelAll();
+
+            var html = '';
+            var loadQueue = [];
+
+            for (var i = 0; i < images.length; i++) {
+                var img = images[i];
+                var dateStr = img.date || '';
+                var displayTitle = formatTitle(img);
+
+                var imageUrl = getImageUrl(img);
+                if (isBingCdnUrl(img.bing_url)) {
+                    imageUrl = get720pUrl(img);
+                }
+
+                var imgType = getImageType(img);
+                var isUhd = (imgType === 'uhd');
+                var isFhd = (imgType === 'fhd');
+                var uhdUrl = get4kUrl(img);
+                var fhdUrl = get1080pUrl(img);
+                var normalUrl = img.bing_url || img.local_path || '';
+                if (normalUrl && !normalUrl.startsWith('http') && normalUrl.startsWith('/')) {
+                    normalUrl = window.location.origin + normalUrl;
+                }
+                var escapedData = encodeURIComponent(JSON.stringify(img));
+                var imgId = 'img-' + i + '-' + Date.now();
+
+                html += '<div class="card" data-item="' + escapedData + '">';
+                html += '<div class="img-wrapper" id="wrapper-' + imgId + '">';
+                html += '<div class="placeholder"><div class="spinner"></div></div>';
+                html += '<img id="' + imgId + '" data-src="' + imageUrl + '" alt="' + displayTitle + '" loading="lazy" />';
+                html += '</div>';
+                html += '<div class="info">';
+                html += '<div class="date">📅 ' + dateStr + '</div>';
+                html += '<div class="title">' + displayTitle + '</div>';
+                html += '<div class="btn-group">';
+
+                if (isUhd) {
+                    html += '<a href="' + uhdUrl + '" class="download-btn btn-4k" target="_blank" onclick="event.stopPropagation();">';
+                    html += DOWNLOAD_SVG + ' 4K/UHD</a>';
+                    html += '<a href="' + fhdUrl + '" class="download-btn btn-1080p" target="_blank" onclick="event.stopPropagation();">';
+                    html += DOWNLOAD_SVG + ' 1080P</a>';
+                } else if (isFhd) {
+                    html += '<a href="' + fhdUrl + '" class="download-btn btn-1080p" target="_blank" onclick="event.stopPropagation();">';
+                    html += DOWNLOAD_SVG + ' 1080P</a>';
+                } else {
+                    html += '<a href="' + normalUrl + '" class="download-btn btn-download" target="_blank" onclick="event.stopPropagation();">';
+                    html += DOWNLOAD_SVG + ' 下载图片</a>';
+                }
+
+                html += '</div></div></div>';
+
+                loadQueue.push({
+                    id: imgId,
+                    url: imageUrl
+                });
+            }
+            grid.innerHTML = html;
+
+            var imgElements = [];
+            loadQueue.forEach(function (item) {
+                var el = document.getElementById(item.id);
+                if (el) {
+                    imgElements.push({
+                        element: el,
+                        url: item.url
+                    });
+                }
+            });
+
+            if (imgElements.length > 0) {
+                imageLoader.loadImagesBatch(imgElements);
+            }
+
+            document.querySelectorAll('.card').forEach(function (el) {
+                el.addEventListener('click', function (e) {
+                    if (e.target.closest('a')) return;
+                    var encodedData = this.dataset.item;
+                    if (encodedData) {
+                        try {
+                            var jsonStr = decodeURIComponent(encodedData);
+                            var item = JSON.parse(jsonStr);
+                            openModal(item);
+                        } catch (e) {
+                            console.warn('解析数据失败:', e);
+                        }
+                    }
+                });
+            });
+        }
+
+        // ============================================================
+        // 6. 模态框 - 全屏
+        // ============================================================
+        function openModal(item) {
+            var overlay = document.getElementById('modalOverlay');
+            var displayTitle = formatTitle(item);
+            document.getElementById('modalTitle').textContent = displayTitle;
+            var img = document.getElementById('modalImg');
+            var modalUrl = get1080pUrl(item);
+            img.src = modalUrl;
+            img.alt = displayTitle;
+            document.getElementById('modalSubtitle').style.display = 'none';
+            var desc = item.description || '';
+            desc = desc.replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/<br\s*\/?>/gi, '\n');
+            var paragraphs = desc.split('\n').map(function (p) { return p.trim(); }).filter(function (p) { return p !== ''; });
+            var descHtml = paragraphs.map(function (p) { return '<p>' + p + '</p>'; }).join('');
+            document.getElementById('modalDesc').innerHTML = descHtml;
+            overlay.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            var overlay = document.getElementById('modalOverlay');
+            if (overlay) {
+                overlay.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+        }
+
+        document.getElementById('modalClose').addEventListener('click', closeModal);
+        document.getElementById('modalOverlay').addEventListener('click', function (e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeModal();
+                var mask = document.getElementById('mask');
+                if (mask.classList.contains('show')) {
+                    mask.classList.remove('show');
+                }
+            }
+        });
+
+        // ============================================================
+        // 7. 加载指定年月数据
+        // ============================================================
+        async function loadMonthData(year, monthStr) {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '<div class="loading">加载壁纸数据中...</div>';
+        
+            imageLoader.cancelAll();
+        
+            let monthData = null;
+        
+            // 1) 优先读月份文件（共享缓存，若背景已读过则直接命中）
+            try {
+                const data = await fetchMonthFile(year, monthStr);
+                if (Array.isArray(data) && data.length > 0) {
+                    monthData = data;
+                    console.log('✅ 月份数据来源: 月份文件 (' + data.length + ' 条)');
+                }
+            } catch (e) {
+                console.warn('⚠️ 月份文件读取失败，尝试回退年份文件:', e.message);
+            }
+        
+            // 2) 回退：读年份文件再按月份筛选
+            if (!monthData) {
+                console.log('↩️ 回退到年份文件筛选');
+                const yearData = await loadYearData(year);
+                if (!yearData || yearData.length === 0) {
+                    renderGrid([]);
+                    return;
+                }
+                monthData = filterImagesByMonth(yearData, monthStr);
+            }
+        
+            renderGrid(monthData);
+        }
+
+        // ============================================================
+        // 8. 页面初始化
+        // ============================================================
+        window.addEventListener('DOMContentLoaded', async function () {
+            await loadIndex();
+        });
+    </script>
+</body>
+</html>
