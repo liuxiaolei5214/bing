@@ -283,46 +283,105 @@ function extractEncyclopediaFromHtml(html) {
   };
 }
 
-// ===================== 抓单条百科 =====================
+// ===================== 抓单条百科（cn + www 双域名，各 3 次重试） =====================
 async function fetchEncyclopedia(backstageUrl) {
   if (!backstageUrl) return { subtitle: '', description: '' };
 
-  for (let i = 1; i <= CONFIG.ENC_RETRIES; i++) {
-    try {
-      const muid = randomMuid();
-      const guid = randomGuid();
+  // 构造 www 版本 URL
+  let wwwUrl = backstageUrl;
+  try {
+    const u = new URL(backstageUrl);
+    if (u.hostname === 'cn.bing.com') {
+      u.hostname = 'www.bing.com';
+      wwwUrl = u.toString();
+    }
+  } catch (e) {}
 
-      const headers = {
-        ...CONFIG.SEARCH_HEADERS,
-        'Cookie': `MUID=${muid}; MUIDB=${muid}; SRCHUID=V=2&GUID=${guid}&dmnchg=1`,
-      };
+  const domains = [
+    { name: 'cn.bing.com', url: backstageUrl },
+    { name: 'www.bing.com', url: wwwUrl }
+  ];
 
-      writeLog(`  🍪 第 ${i}/${CONFIG.ENC_RETRIES} 次：MUID=${muid.slice(0,8)}... GUID=${guid.slice(0,8)}...`);
+  // 双域名循环
+  for (let d = 0; d < domains.length; d++) {
+    const { name: domainName, url } = domains[d];
 
-      const res = await requestGet(backstageUrl, headers, 20000);
-      writeLog(`  📦 响应：${res.status}, ${res.bytes} 字节`);
+    // ✅ 每个域名只生成一次 MUID + GUID（同域名重试复用）
+    const muid = randomMuid();
+    const guid = randomGuid();
+    const cookie = `MUID=${muid}; MUIDB=${muid}; SRCHUID=V=2&GUID=${guid}&dmnchg=1`;
 
-      if (res.status !== 200 || res.bytes < CONFIG.ENC_MIN_BYTES) {
-        writeLog(`  ⚠️ 第 ${i}/${CONFIG.ENC_RETRIES} 次响应异常（${res.status}, ${res.bytes}字节）`);
-        if (i < CONFIG.ENC_RETRIES) await sleep(CONFIG.ENC_RETRY_DELAY);
-        continue;
+    writeLog(`  🌐 [${d + 1}/${domains.length}] 使用域名：${domainName}`);
+    writeLog(`  🍪 本域名标识：MUID=${muid.slice(0, 8)}... GUID=${guid.slice(0, 8)}...`);
+
+    // 同域名 3 次重试
+    for (let i = 1; i <= CONFIG.ENC_RETRIES; i++) {
+      try {
+        const headers = {
+          ...CONFIG.SEARCH_HEADERS,
+          'Cookie': cookie,
+        };
+
+        writeLog(`  📡 第 ${i}/${CONFIG.ENC_RETRIES} 次请求...`);
+
+        const res = await requestGet(url, headers, 20000);
+        writeLog(`  📦 响应：${res.status}, ${res.bytes} 字节`);
+
+        // HTTP 异常
+        if (res.status !== 200) {
+          writeLog(`  ⚠️ HTTP ${res.status}`);
+          if (i < CONFIG.ENC_RETRIES) {
+            writeLog(`  ⏳ 等待 ${CONFIG.ENC_RETRY_DELAY / 1000}s 后重试...`);
+            await sleep(CONFIG.ENC_RETRY_DELAY);
+          }
+          continue;
+        }
+
+        // 空壳页（限流）
+        if (res.bytes < CONFIG.ENC_MIN_BYTES) {
+          writeLog(`  🚫 疑似限流（${res.bytes} < ${CONFIG.ENC_MIN_BYTES}）`);
+          if (i < CONFIG.ENC_RETRIES) {
+            writeLog(`  ⏳ 等待 ${CONFIG.ENC_RETRY_DELAY / 1000}s 后重试...`);
+            await sleep(CONFIG.ENC_RETRY_DELAY);
+          }
+          continue;
+        }
+
+        // 解析
+        const enc = extractEncyclopediaFromHtml(res.body);
+        if (enc && enc.length > 50) {
+          writeLog(`  ✅ 百科抓取成功（${domainName}）：${enc.paragraphs.length} 段，${enc.length} 字符`);
+          return enc;
+        }
+
+        writeLog(`  ⚠️ 未解析到有效百科`);
+        if (i < CONFIG.ENC_RETRIES) {
+          writeLog(`  ⏳ 等待 ${CONFIG.ENC_RETRY_DELAY / 1000}s 后重试...`);
+          await sleep(CONFIG.ENC_RETRY_DELAY);
+        }
+
+      } catch (e) {
+        writeLog(`  ❌ 异常：${e.message}`);
+        if (i < CONFIG.ENC_RETRIES) {
+          writeLog(`  ⏳ 等待 ${CONFIG.ENC_RETRY_DELAY / 1000}s 后重试...`);
+          await sleep(CONFIG.ENC_RETRY_DELAY);
+        }
       }
+    }
 
-      const enc = extractEncyclopediaFromHtml(res.body);
-      if (enc && enc.length > 50) {
-        writeLog(`  ✅ 百科抓取成功：${enc.paragraphs.length} 段，${enc.length} 字符`);
-        return enc;
-      }
+    // 当前域名 3 次都失败
+    writeLog(`  ❌ ${domainName} 重试 ${CONFIG.ENC_RETRIES} 次均失败`);
 
-      writeLog(`  ⚠️ 第 ${i}/${CONFIG.ENC_RETRIES} 次未解析到有效百科`);
-      if (i < CONFIG.ENC_RETRIES) await sleep(CONFIG.ENC_RETRY_DELAY);
-    } catch (e) {
-      writeLog(`  ❌ 第 ${i}/${CONFIG.ENC_RETRIES} 次异常：${e.message}`);
-      if (i < CONFIG.ENC_RETRIES) await sleep(CONFIG.ENC_RETRY_DELAY);
+    if (d < domains.length - 1) {
+      // ✅ 切换域名前冷却
+      const cooldown = CONFIG.DOMAIN_SWITCH_DELAY || 60000;
+      writeLog(`  🧊 冷却 ${cooldown / 1000}s，准备切换域名...`);
+      await sleep(cooldown);
+      writeLog(`  🔄 切换到下一个域名，将生成新的 MUID/GUID...`);
     }
   }
 
-  writeLog(`  ❌ 重试 ${CONFIG.ENC_RETRIES} 次均失败，本条 description 留空`);
+  writeLog(`  ❌ cn.bing.com + www.bing.com 全部失败，本条 description 留空`);
   return { subtitle: '', description: '' };
 }
 
