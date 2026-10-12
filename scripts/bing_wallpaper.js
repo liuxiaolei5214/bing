@@ -34,7 +34,8 @@ const CONFIG = {
 
   KEEP_DAYS: 14,
   ENC_RETRIES: 3,
-  ENC_RETRY_DELAY: 2000,
+  ENC_RETRY_DELAY: 20000,        // 同域名重试间隔 20s
+  DOMAIN_SWITCH_DELAY: 60000,    // ✅ 切换域名前冷却 60s
   ENC_MIN_BYTES: 100000,
 
   // 输出根目录（相对仓库根）
