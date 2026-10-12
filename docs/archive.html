@@ -1251,6 +1251,24 @@
             return bingUrl;
         }
 
+        // ============================================================
+        // 缩略图专用：384x216，仅追加 URL 参数，不改原 URL 结构
+        // 仅对 cn.bing.com / bing.com 的图片生效
+        // ============================================================
+        function getThumbnailUrl(item) {
+            var bingUrl = item.bing_url || '';
+            if (!bingUrl) return '';
+        
+            // 非 Bing CDN 原样返回
+            if (!isBingCdnUrl(bingUrl)) return bingUrl;
+        
+            // 如果已经有 pid=hp 参数，说明已经加过了，直接返回
+            if (bingUrl.indexOf('pid=hp') !== -1) return bingUrl;
+        
+            // 直接追加参数
+            return bingUrl + '&pid=hp&w=384&h=216&rs=1&c=4';
+        }
+        
         function getVerticalUrl(item) {
             var bingUrl = item.bing_url || '';
             if (isJuemeiUrl(bingUrl)) return bingUrl;
@@ -1577,7 +1595,7 @@
 
                 var imageUrl = getImageUrl(img);
                 if (isBingCdnUrl(img.bing_url)) {
-                    imageUrl = get720pUrl(img);
+                    imageUrl = getThumbnailUrl(img);
                 }
 
                 var imgType = getImageType(img);
