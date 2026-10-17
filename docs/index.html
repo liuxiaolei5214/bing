@@ -1,1007 +1,915 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Bing 每日壁纸 · 光影回顾</title>
-    <meta name="description" content="每日更新的必应超清壁纸，4K 高清下载 · 光影回顾" />
-    <link rel="icon" href="/favicon.avif">
-    <style>
-        /* ===== 隐藏所有滚动条 ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>光影 · 必应壁纸</title>
+  <meta name="description" content="每日更新的必应超清壁纸，4K 高清下载 · 光影回顾" />
+  <link rel="icon" href="/favicon.avif">
+  <style>
+    /* ===== 极简重置 & 隐藏滚动条 ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        html,
-        body {
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-        html::-webkit-scrollbar,
-        body::-webkit-scrollbar {
-            display: none;
-        }
+    html, body {
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar {
+      display: none;
+    }
 
-        .viewport {
-            height: 100vh;
-            width: 100vw;
-            overflow-y: scroll;
-            overflow-x: hidden;
-            scroll-behavior: smooth;
-            scroll-snap-type: y mandatory;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-        .viewport::-webkit-scrollbar {
-            display: none;
-        }
+    .viewport {
+      height: 100vh;
+      width: 100vw;
+      overflow-y: scroll;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .viewport::-webkit-scrollbar {
+      display: none;
+    }
 
-        .fullscreen-section {
-            height: 100vh;
-            width: 100vw;
-            max-width: 100vw;
-            scroll-snap-align: start;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            overflow: hidden;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    .fullscreen-section {
+      height: 100vh;
+      width: 100vw;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      padding: 0;
+    }
 
-        /* ===== 今日壁纸 ===== */
-        #today {
-            height: 100vh;
-            width: 100vw;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 0;
-            background: radial-gradient(circle at 30% 20%, #1f2a30, #0e1218);
-        }
+    /* ===== 今日壁纸 · 沉浸式 ===== */
+    #today {
+      background: #0c0f14;
+    }
 
-        #todayCard {
-            width: 100%;
-            height: 100%;
-            border-radius: 0;
-            overflow: hidden;
-            box-shadow: none;
-            background: #1e232b;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
-        #todayCard img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
+    #todayCard {
+      width: 100%;
+      height: 100%;
+      background: #1a1e26;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
 
-        /* 今日页面底部渐变遮罩：永远贴底，不随内容上移 */
-        #todayCard .today-gradient {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 45%;
-            z-index: 2;
-            background: linear-gradient(to top, 
-                rgba(0, 0, 0, 0.95) 0%, 
-                rgba(0, 0, 0, 0.7) 40%,
-                rgba(0, 0, 0, 0.3) 70%,
-                transparent 100%
-            );
-            pointer-events: none;
-        }
-        
-        /* 今日页面内容容器：可以整体上移，不再负责渐变 */
-        #todayCard .today-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 3;
-            padding: 28px 32px 20px;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            min-height: 45%;
-        }
+    #todayCard > img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.8s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
 
+    /* 今日遮罩 —— 底部渐变更柔和，结合磨砂玻璃 */
+    #todayCard .today-gradient {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 55%;
+      z-index: 2;
+      background: linear-gradient(
+        to top,
+        rgba(8, 10, 15, 0.92) 0%,
+        rgba(8, 10, 15, 0.7) 30%,
+        rgba(8, 10, 15, 0.2) 65%,
+        transparent 100%
+      );
+      pointer-events: none;
+    }
 
-        /* ===== 标题 ===== */
-        #todayCard .today-overlay .today-title {
-            font-size: 1.6rem;
-            font-weight: 600;
-            margin-bottom: 4px;
-            color: #fff;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-            pointer-events: auto;
-        }
+    /* 内容覆盖层：更大留白，呼吸感 */
+    #todayCard .today-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 3;
+      padding: 40px 48px 36px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      pointer-events: none;
+      min-height: 45%;
+    }
 
-        /* ===== 描述文字 ===== */
-        #todayCard .today-overlay .today-desc {
-            font-size: 0.95rem;
-            line-height: 1.8;
-            opacity: 0.92;
-            white-space: normal;
-            word-break: break-word;
-            color: #f0f0f0;
-            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-            pointer-events: auto;
-            max-height: 40vh;
-            overflow-y: auto;
-            scrollbar-width: none;
-        }
+    /* 标题 —— 纤细现代感 */
+    #todayCard .today-overlay .today-title {
+      font-size: 2.2rem;
+      font-weight: 350;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      color: #fff;
+      text-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+      margin-bottom: 12px;
+      pointer-events: auto;
+      max-width: 80%;
+    }
 
-        #todayCard .today-overlay .today-desc::-webkit-scrollbar {
-            width: 0px;
-            background: transparent;
-        }
+    /* 描述文字 —— 更通透 */
+    #todayCard .today-overlay .today-desc {
+      font-size: 0.98rem;
+      line-height: 1.8;
+      font-weight: 350;
+      color: rgba(255, 255, 255, 0.88);
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+      pointer-events: auto;
+      max-height: 42vh;
+      overflow-y: auto;
+      scrollbar-width: none;
+      white-space: pre-line;
+      max-width: 88%;
+    }
+    #todayCard .today-overlay .today-desc::-webkit-scrollbar {
+      width: 0;
+      background: transparent;
+    }
+    #todayCard .today-overlay .today-desc p {
+      text-indent: 2em;
+      margin: 0 0 0.25em 0;
+    }
 
-        #todayCard .today-overlay .today-desc p {
-            text-indent: 2em;
-            margin: 0;
-            padding: 0;
-            line-height: 1.8;
-        }
+    /* ===== 今日按钮组 · PC端（水平排列，轻量磨砂） ===== */
+    #todayCard .today-overlay .today-actions-pc {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+      margin-top: 30px;
+      pointer-events: auto;
+    }
 
-        #todayCard .today-overlay .today-desc p + p {
-            margin-top: 0;
-        }
+    /* 移动端悬浮按钮（右上角，独立） */
+    #todayCard .today-actions-mobile {
+      display: none;
+      position: absolute;
+      top: 20px;
+      right: 16px;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 8px;
+      z-index: 10;
+      max-width: calc(100vw - 32px);
+    }
 
-        /* ===== 按钮组【PC端：放在底部overlay内】 ===== */
-        #todayCard .today-overlay .today-actions-pc {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 10px;
-            margin-top: 12px;
-            pointer-events: auto;
-            position: relative;
-        }
-        /* 移动端悬浮按钮，直接相对于#todayCard定位，画面右上角 */
-        #todayCard .today-actions-mobile {
-            display: none;
-            position: absolute;
-            top: 16px;
-            right: 12px;
-            flex-direction: row;
-            flex-wrap: wrap;
-            gap: 6px;
-            z-index: 3;
-            max-width: calc(100vw - 24px);
-        }
+    /* 按钮基础样式 —— 全新风格：极简 + 细腻边框 */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 20px;
+      border-radius: 60px;
+      font-size: 0.82rem;
+      font-weight: 400;
+      letter-spacing: 0.3px;
+      text-decoration: none;
+      color: #f2f2f0;
+      background: rgba(30, 32, 38, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: all 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+      white-space: nowrap;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .btn svg {
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+    }
+    .btn:hover {
+      background: rgba(60, 64, 72, 0.6);
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+    }
+    .btn-primary {
+      background: rgba(210, 180, 140, 0.15);
+      border-color: rgba(210, 180, 140, 0.3);
+      color: #f0e6d8;
+    }
+    .btn-primary:hover {
+      background: rgba(210, 180, 140, 0.3);
+      border-color: rgba(210, 180, 140, 0.5);
+    }
 
-        #todayCard .today-actions-pc .btn,
-        #todayCard .today-actions-mobile .btn {
-            display: inline-flex;
-            align-items: center;
-            padding: 6px 18px;
-            border-radius: 40px;
-            font-size: 0.78rem;
-            font-weight: 400;
-            letter-spacing: 0.8px;
-            text-decoration: none;
-            color: #f0ede8;
-            background: rgba(200, 200, 200, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(4px);
-            transition: all 0.25s;
-            white-space: nowrap;
-        }
+    /* 滚动提示 —— 更低调、优雅 */
+    .global-scroll-hint {
+      position: absolute;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%);
+      z-index: 6;
+      font-size: 0.7rem;
+      letter-spacing: 2.5px;
+      font-weight: 300;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.3);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .global-scroll-hint span {
+      display: inline-block;
+      animation: gentleFloat 2.8s infinite ease-in-out;
+    }
+    @keyframes gentleFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
 
-        #todayCard .today-actions-pc .btn svg,
-        #todayCard .today-actions-mobile .btn svg {
-            flex-shrink: 0;
-            margin-right: 4px;
-        }
+    /* 隐藏PC按钮组内部旧的滚动提示（避免重复） */
+    .today-actions-pc .today-scroll-hint {
+      display: none !important;
+    }
 
-        .btn-primary {
-            background: rgba(220, 210, 180, 0.15);
-            border-color: rgba(240, 230, 200, 0.2);
-        }
-        .btn-primary:hover {
-            background: rgba(220, 210, 180, 0.3);
-            transform: scale(1.03);
-        }
-        .btn-secondary:hover {
-            background: rgba(200, 200, 200, 0.15);
-            transform: scale(1.02);
-        }
+    /* ===== 轮播 · 电影感 ===== */
+    #movieCarouselSection {
+      background: #0b0e13;
+    }
 
-        /* ===== 滚动提示（居中） ===== */
-        .today-scroll-hint {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.65rem;
-            letter-spacing: 2px;
-            color: rgba(255, 255, 255, 0.4);
-            pointer-events: none;
-            white-space: nowrap;
-        }
+    .carousel-movie {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background: #14191f;
+      overflow: hidden;
+    }
 
-        .today-scroll-hint span {
-            display: inline-block;
-            animation: bobble 2.4s infinite;
-        }
+    .movie-slide {
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      transition: background-image 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      display: flex;
+      align-items: flex-end;
+      position: relative;
+    }
 
-        /* 全局滚动提示，PC/手机都可见，固定画面底部居中 */
-        .global-scroll-hint {
-            position: absolute;
-            left: 50%;
-            bottom: 18px;
-            transform: translateX(-50%);
-            z-index: 5;
-            font-size: 0.65rem;
-            letter-spacing: 2px;
-            color: rgba(255, 255, 255, 0.4);
-            pointer-events: none;
-            white-space: nowrap;
-        }
-        .global-scroll-hint span {
-            display: inline-block;
-            animation: bobble 2.4s infinite;
-        }
-        
-        /* 隐藏PC按钮组内部旧的滚动提示（避免重复出现） */
-        .today-actions-pc .today-scroll-hint {
-            display: none !important;
-        }
+    /* 底部渐变 - 更电影感、更宽阔 */
+    .movie-bottom-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 45%;
+      z-index: 12;
+      background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.9) 0%,
+        rgba(0, 0, 0, 0.55) 40%,
+        rgba(0, 0, 0, 0.15) 75%,
+        transparent 100%
+      );
+      pointer-events: none;
+    }
 
-        @keyframes bobble {
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-4px);
-            }
-        }
+    /* 底部栏：标题居左，按钮居右，更宽的间距 */
+    .movie-bottom-bar {
+      position: absolute;
+      bottom: 50px;
+      left: 3rem;
+      right: 3rem;
+      z-index: 15;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+      gap: 30px;
+    }
 
-        /* ===== 加载状态 ===== */
-        .loading {
-            color: #888;
-            font-size: 1rem;
-            text-align: center;
-        }
+    .movie-title-bar {
+      pointer-events: auto;
+      flex-shrink: 1;
+      min-width: 0;
+    }
 
-        /*  电影感轮播 - 新布局：标题+按钮同一行，无顶部遮罩
-         ============================================================ */
-        #movieCarouselSection {
-            height: 100vh;
-            width: 100vw;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 0;
-            background: radial-gradient(circle at 70% 60%, #1a262e, #0b1015);
-        }
+    .movie-title-bar .movie-info {
+      color: #f5f3ef;
+      text-shadow: 0 6px 28px rgba(0, 0, 0, 0.95);
+    }
 
-        .carousel-movie {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            border-radius: 0;
-            overflow: hidden;
-            box-shadow: none;
-            background: #14191f;
-        }
+    .movie-title-bar .movie-title {
+      font-size: 1.6rem !important;
+      font-weight: 300;
+      letter-spacing: -0.01em;
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      background: linear-gradient(to right, #fff 60%, rgba(255,255,255,0.6));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-        .movie-slide {
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            transition: background-image 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            display: flex;
-            align-items: flex-end;
-            position: relative;
-        }
+    .movie-title-bar .movie-date {
+      display: none !important;
+    }
 
-        /* ===== 【修改】底部渐变遮罩 - 从底部向上渐变 ===== */
-        .movie-bottom-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 35%;
-            z-index: 12;
-            background: linear-gradient(to top, 
-                rgba(0, 0, 0, 0.85) 0%, 
-                rgba(0, 0, 0, 0.4) 50%,
-                transparent 100%
-            );
-            pointer-events: none;
-        }
+    /* 轮播按钮组 */
+    .movie-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      align-items: center;
+      pointer-events: auto;
+      flex-shrink: 0;
+    }
+    .movie-actions .btn {
+      padding: 0.5rem 1.4rem;
+      font-size: 0.78rem;
+      border-radius: 60px;
+      background: rgba(20, 24, 30, 0.55);
+      border-color: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .movie-actions .btn:hover {
+      background: rgba(40, 46, 56, 0.75);
+      transform: translateY(-2px);
+    }
 
-        /* ===== 【修改】标题 + 按钮同行，固定在底部 ===== */
-        .movie-bottom-bar {
-            position: absolute;
-            bottom: 40px;
-            left: 2.5rem;
-            right: 2.5rem;
-            z-index: 15;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            pointer-events: none;
-            gap: 20px;
-        }
+    /* 左右箭头 —— 更大、更优雅 */
+    .movie-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(10, 14, 18, 0.4);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(200, 200, 200, 0.08);
+      color: #eae7e0;
+      width: 3.8rem;
+      height: 3.8rem;
+      border-radius: 60px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+      z-index: 20;
+      opacity: 0;
+      visibility: hidden;
+      padding: 0;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+    .movie-slide.show-nav .movie-btn {
+      opacity: 0.7;
+      visibility: visible;
+    }
+    .movie-btn:hover {
+      background: rgba(40, 50, 60, 0.7);
+      opacity: 1;
+      transform: translateY(-50%) scale(1.06);
+    }
+    .movie-btn svg {
+      width: 2rem;
+      height: 2rem;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .movie-btn.prev { left: 1.5rem; }
+    .movie-btn.next { right: 1.5rem; }
 
-        .movie-title-bar {
-            pointer-events: auto;
-            flex-shrink: 1;
-            min-width: 0;
-        }
+    /* 缩略图导航 —— 悬浮玻璃胶囊，位于顶部 */
+    .movie-thumbnails {
+      position: absolute;
+      top: 1.8rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 0.7rem;
+      padding: 0.6rem 1rem;
+      background: rgba(10, 14, 18, 0.4);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 80px;
+      border: 1px solid rgba(255, 255, 245, 0.08);
+      z-index: 25;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 80%;
+    }
+    .movie-thumbnails .thumb-item {
+      width: 3.6rem;
+      height: 2.3rem;
+      border-radius: 12px;
+      background-size: cover;
+      background-position: center;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.25s;
+      opacity: 0.45;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .movie-thumbnails .thumb-item.active {
+      border-color: #e6d8c4;
+      opacity: 1;
+      transform: scale(1.08);
+      box-shadow: 0 0 24px rgba(200, 180, 140, 0.35);
+    }
+    .movie-thumbnails .thumb-item:hover {
+      opacity: 0.9;
+      transform: scale(1.04);
+    }
 
-        .movie-title-bar .movie-info {
-            color: #f0f0ea;
-            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.9);
-        }
+    /* ===== 响应式 · 移动端 ===== */
+    @media (max-width: 640px) {
+      /* 今日页面 */
+      #todayCard .today-overlay .today-actions-pc {
+        display: none;
+      }
+      #todayCard .today-actions-mobile {
+        display: flex;
+      }
+      #todayCard .today-gradient {
+        height: 48%;
+      }
+      #todayCard .today-overlay {
+        padding: 20px 20px 24px;
+        min-height: 38%;
+        bottom: 0;
+        transform: none;
+      }
+      #todayCard .today-overlay .today-title {
+        font-size: 1.4rem;
+        margin-bottom: 8px;
+        max-width: 95%;
+      }
+      #todayCard .today-overlay .today-desc {
+        font-size: 0.82rem;
+        line-height: 1.7;
+        max-height: 32vh;
+        max-width: 100%;
+      }
+      #todayCard .today-actions-mobile .btn {
+        font-size: 0.6rem;
+        padding: 5px 10px;
+        gap: 4px;
+      }
+      #todayCard .today-actions-mobile .btn svg {
+        width: 12px;
+        height: 12px;
+      }
+      /* 顶部深色渐变，让按钮可读 */
+      #todayCard::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 140px;
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.65), transparent);
+        z-index: 1;
+        pointer-events: none;
+      }
 
-        .movie-title-bar .movie-title {
-            font-size: 1.3rem !important;
-            font-weight: 300;
-            letter-spacing: 1px;
-            line-height: 1.4;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+      /* 轮播页面 */
+      .movie-bottom-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+        left: 1.5rem;
+        right: 1.5rem;
+        bottom: 36px;
+      }
+      .movie-title-bar .movie-title {
+        font-size: 1.1rem !important;
+        white-space: normal;
+      }
+      .movie-actions {
+        gap: 0.5rem;
+      }
+      .movie-actions .btn {
+        font-size: 0.55rem;
+        padding: 0.25rem 0.8rem;
+        gap: 4px;
+      }
+      .movie-actions .btn svg {
+        width: 12px;
+        height: 12px;
+      }
+      .movie-btn {
+        width: 2.8rem;
+        height: 2.8rem;
+      }
+      .movie-btn svg {
+        width: 1.5rem;
+        height: 1.5rem;
+      }
+      .movie-btn.prev { left: 0.6rem; }
+      .movie-btn.next { right: 0.6rem; }
+      .movie-thumbnails {
+        max-width: calc(100% - 32px);
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        justify-content: flex-start;
+        top: 1rem;
+        padding: 0.4rem 0.7rem;
+        border-radius: 40px;
+        scrollbar-width: none;
+      }
+      .movie-thumbnails::-webkit-scrollbar {
+        display: none;
+      }
+      .movie-thumbnails .thumb-item {
+        width: 2.6rem;
+        height: 1.7rem;
+      }
+      .movie-bottom-overlay {
+        height: 52%;
+      }
+      .global-scroll-hint {
+        bottom: 14px;
+        font-size: 0.6rem;
+        letter-spacing: 1.8px;
+      }
+    }
 
-        .movie-title-bar .movie-date {
-            display: none !important;
-        }
-
-        /* ===== 按钮组 - 在同行右侧 ===== */
-        .movie-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.6rem;
-            align-items: center;
-            pointer-events: auto;
-            flex-shrink: 0;
-        }
-
-        .movie-actions .btn {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.4rem 1.2rem;
-            border-radius: 40px;
-            font-size: 0.75rem;
-            font-weight: 400;
-            letter-spacing: 0.8px;
-            text-decoration: none;
-            color: #f0ede8;
-            background: rgba(200, 200, 200, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(4px);
-            transition: all 0.25s;
-            white-space: nowrap;
-        }
-
-        .movie-actions .btn svg {
-            flex-shrink: 0;
-            margin-right: 4px;
-        }
-
-        /* ===== 轮播控制按钮 ===== */
-        .movie-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(10, 14, 18, 0.5);
-            backdrop-filter: blur(6px);
-            border: 1px solid rgba(200, 200, 200, 0.1);
-            color: #e0ddd0;
-            width: 3.4rem;
-            height: 3.4rem;
-            border-radius: 60px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.25s;
-            z-index: 10;
-            opacity: 0;
-            visibility: hidden;
-            padding: 0;
-        }
-        .movie-slide.show-nav .movie-btn {
-            opacity: 0.7;
-            visibility: visible;
-        }
-        .movie-btn:hover {
-            background: rgba(30, 40, 48, 0.7);
-            opacity: 1;
-            transform: translateY(-50%) scale(1.05);
-        }
-        .movie-btn svg {
-            width: 1.8rem;
-            height: 1.8rem;
-            stroke: currentColor;
-            stroke-width: 2;
-            fill: none;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-        .movie-btn.prev {
-            left: 1.2rem;
-        }
-        .movie-btn.next {
-            right: 1.2rem;
-        }
-
-        /* ===== 缩略图导航 - 在顶部 ===== */
-        .movie-thumbnails {
-            position: absolute;
-            top: 1.2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 0.6rem;
-            padding: 0.4rem 0.8rem;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 60px;
-            border: 1px solid rgba(255, 255, 240, 0.06);
-            z-index: 20;
-            flex-wrap: wrap;
-            justify-content: center;
-            max-width: 80%;
-        }
-        .movie-thumbnails .thumb-item {
-            width: 3.4rem;
-            height: 2.2rem;
-            border-radius: 10px;
-            background-size: cover;
-            background-position: center;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: all 0.25s;
-            opacity: 0.5;
-            flex-shrink: 0;
-        }
-        .movie-thumbnails .thumb-item.active {
-            border-color: #e8e0d0;
-            opacity: 1;
-            transform: scale(1.08);
-            box-shadow: 0 0 20px rgba(200, 180, 140, 0.25);
-        }
-        .movie-thumbnails .thumb-item:hover {
-            opacity: 0.9;
-            transform: scale(1.04);
-        }
-
-        /* ===== 移动端样式 ===== */
-        @media (max-width: 640px) {
-            /* ========== 今日页面移动端 ========== */
-            #todayCard .today-overlay .today-actions-pc {
-                display: none;
-            }
-            #todayCard .today-actions-mobile {
-                display: flex;
-            }
-            #todayCard .today-gradient {
-                height: 38%;
-            }
-            #todayCard .today-overlay {
-                padding: 16px 18px 14px;
-                min-height: 35%;
-                bottom: 20px;
-                transform: translateY(-30px);
-            }
-            #todayCard .today-overlay .today-title {
-                font-size: 1.2rem;
-            }
-            #todayCard .today-overlay .today-desc {
-                font-size: 0.82rem;
-                line-height: 1.7;
-                max-height: 30vh;
-            }
-            #todayCard .today-actions-mobile .btn {
-                font-size: 0.5rem;
-                padding: 3px 8px;
-            }
-            /* 移动端顶部遮罩，保证右上角按钮可视 */
-            #todayCard::before {
-            content:"";
-            position:absolute;
-            top:0;
-            left:0;
-            width:100%;
-            height:160px;
-            background:linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
-            z-index:1;
-            pointer-events:none;
-            }
-            /* ========== 轮播页面移动端 ========== */
-            /* 底部栏变为上下排列 */
-            .movie-bottom-bar {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-                left: 1.2rem;
-                right: 1.2rem;
-                bottom: 30px;
-            }
-            .movie-title-bar .movie-title {
-                font-size: 0.88rem !important;
-                white-space: normal;
-            }
-            .movie-actions {
-                gap: 0.3rem;
-            }
-            .movie-actions .btn {
-                font-size: 0.48rem;
-                padding: 0.18rem 0.45rem;
-            }
-            /* 切换箭头缩小 */
-            .movie-btn {
-                width: 2.6rem;
-                height: 2.6rem;
-            }
-            .movie-btn svg {
-                width: 1.4rem;
-                height: 1.4rem;
-            }
-            .movie-btn.prev {
-                left: 0.4rem;
-            }
-            .movie-btn.next {
-                right: 0.4rem;
-            }
-            /* 缩略图在顶部单行横向滚动 */
-            .movie-thumbnails {
-                max-width: calc(100% - 24px);
-                flex-wrap: nowrap;
-                overflow-x: auto;
-                justify-content: flex-start;
-                transform: translateX(-50%);
-                top: 1.2rem;
-                scrollbar-width: none;
-            }
-            .movie-thumbnails::-webkit-scrollbar {
-                display: none;
-            }
-            .movie-thumbnails .thumb-item {
-                width: 2.4rem;
-                height: 1.6rem;
-            }
-            /* 底部遮罩适配 */
-            .movie-bottom-overlay {
-                height: 45%;
-            }
-        }
-
-        @media (max-width: 480px) {
-            #todayCard .today-gradient {
-                height: 34%;
-            }
-            #todayCard .today-overlay {
-                padding: 12px 14px 12px;
-                min-height: 30%;
-                bottom: 10px;
-                transform: translateY(-24px);
-            }
-            #todayCard .today-overlay .today-title {
-                font-size: 1rem;
-            }
-            #todayCard .today-overlay .today-desc {
-                font-size: 0.75rem;
-                line-height: 1.6;
-                max-height: 25vh;
-            }
-            /* 移动端底部栏进一步调整 */
-            .movie-bottom-bar {
-                bottom: 20px;
-                gap: 8px;
-            }
-            .movie-bottom-overlay {
-                height: 50%;
-            }
-        }
-    </style>
+    @media (max-width: 480px) {
+      #todayCard .today-overlay .today-title {
+        font-size: 1.2rem;
+      }
+      #todayCard .today-overlay .today-desc {
+        font-size: 0.75rem;
+        line-height: 1.6;
+        max-height: 28vh;
+      }
+      .movie-title-bar .movie-title {
+        font-size: 0.95rem !important;
+      }
+      .movie-bottom-bar {
+        bottom: 28px;
+        gap: 10px;
+      }
+      .movie-bottom-overlay {
+        height: 58%;
+      }
+    }
+  </style>
 </head>
 <body>
 
-    <!-- ===== 整屏滚动容器 ===== -->
-    <div class="viewport" id="viewport">
+<div class="viewport" id="viewport">
 
-        <!-- ===== 今日壁纸 - 全屏 ===== -->
-        <section id="today" class="fullscreen-section">
-            <div id="todayCard">
-                <div class="loading">加载中...</div>
-                <!-- 移动端悬浮右上角按钮容器（独立层级） -->
-                <div class="today-actions-mobile"></div>
-            </div>
-        </section>
-
-        <!-- ===== 电影感壁纸轮播（光影回顾）- 全屏 ===== -->
-        <section id="movieCarouselSection" class="fullscreen-section">
-            <div class="carousel-movie">
-                <div class="movie-slide active" id="movieSlide" style="background-image: url('');">
-                    <!-- 【取消】顶部遮罩已移除 -->
-                    <!-- 【修改】底部渐变遮罩 -->
-                    <div class="movie-bottom-overlay"></div>
-                    
-                    <!-- 【修改】标题 + 按钮同行底部栏 -->
-                    <div class="movie-bottom-bar">
-                        <div class="movie-title-bar">
-                            <div class="movie-info">
-                                <div class="movie-title" id="movieTitle"></div>
-                                <div class="movie-date" id="movieDate"></div>
-                            </div>
-                        </div>
-                        <div class="movie-actions" id="movieActions">
-                            <a href="#" class="btn btn-primary" id="movieDownloadBtn" target="_blank"></a>
-                            <a href="#" class="btn btn-secondary" id="movieViewBtn" target="_blank"></a>
-                            <a href="#" class="btn btn-secondary" id="movieDetailBtn" target="_blank"></a>
-                            <a href="/archive.html" class="btn btn-secondary" id="archiveBtn"></a>
-                        </div>
-                    </div>
-                    <!-- 缩略图在顶部 -->
-                    <div class="movie-thumbnails" id="movieThumbnails"></div>
-                    <button class="movie-btn prev" id="moviePrev">
-                        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-                    </button>
-                    <button class="movie-btn next" id="movieNext">
-                        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-                    </button>
-                </div>
-            </div>
-        </section>
+  <!-- 今日壁纸 -->
+  <section id="today" class="fullscreen-section">
+    <div id="todayCard">
+      <div class="loading" style="color: #888; font-size: 1rem;">载入中...</div>
+      <div class="today-actions-mobile"></div>
     </div>
+  </section>
 
-    <script>
-        (function() {
-            "use strict";
+  <!-- 电影感轮播 · 光影回顾 -->
+  <section id="movieCarouselSection" class="fullscreen-section">
+    <div class="carousel-movie">
+      <div class="movie-slide active" id="movieSlide" style="background-image: url('');">
+        <div class="movie-bottom-overlay"></div>
+        <div class="movie-bottom-bar">
+          <div class="movie-title-bar">
+            <div class="movie-info">
+              <div class="movie-title" id="movieTitle"></div>
+              <div class="movie-date" id="movieDate"></div>
+            </div>
+          </div>
+          <div class="movie-actions" id="movieActions">
+            <a href="#" class="btn btn-primary" id="movieDownloadBtn" target="_blank"></a>
+            <a href="#" class="btn btn-secondary" id="movieViewBtn" target="_blank"></a>
+            <a href="#" class="btn btn-secondary" id="movieDetailBtn" target="_blank"></a>
+            <a href="/archive.html" class="btn btn-secondary" id="archiveBtn"></a>
+          </div>
+        </div>
+        <div class="movie-thumbnails" id="movieThumbnails"></div>
+        <button class="movie-btn prev" id="moviePrev" aria-label="上一张">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button class="movie-btn next" id="movieNext" aria-label="下一张">
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+</div>
 
-            // ===== SVG 图标 =====
-            const ICONS = {
-                download: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
-                book: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
-                archive: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>`,
-            };
+<script>
+  (function() {
+    "use strict";
 
-            // ===== 判断移动端 =====
-            function isMobileDevice() {
-                return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent) || window.innerWidth <= 640;
-            }
+    // ===== SVG 图标 =====
+    const ICONS = {
+      download: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
+      book: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
+      archive: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>`,
+    };
 
-            // ===== 工具函数【区分横竖版壁纸地址】 =====
-            function get1080pUrl(url) {
-                if (!url) return '';
-                let result = url;
-                if(isMobileDevice()){
-                    result = result.replace(/_UHD\.jpg/g, '_1080x1920.jpg');
-                    result = result.replace(/_1920x1080\.jpg/g, '_1080x1920.jpg');
-                }else{
-                    result = result.replace(/_UHD\.jpg/g, '_1920x1080.jpg');
-                    result = result.replace(/_UHD\.jpg\?/g, '_1920x1080.jpg?');
-                }
-                result = result.replace(/&w=3840&h=2160&rs=1&c=4/g, '');
-                return result;
-            }
+    function isMobileDevice() {
+      return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent) || window.innerWidth <= 640;
+    }
 
-            function get4kUrl(url) {
-                if (!url) return '';
-                if (url.includes('_UHD.jpg')) {
-                    return url;
-                }
-                if(isMobileDevice()){
-                    return url.replace(/_1920x1080\.jpg/g, '_1080x1920.jpg');
-                }else{
-                    return url.replace(/_1920x1080\.jpg/g, '_UHD.jpg');
-                }
-            }
-            
-            function formatTitle(item) {
-                const mainTitle = item.subtitle || '';
-                const subTitle = item.title || '';
-                if (mainTitle && subTitle && mainTitle !== subTitle) {
-                    return `${mainTitle} | ${subTitle}`;
-                }
-                return mainTitle || subTitle || '壁纸';
-            }
+    function get1080pUrl(url) {
+      if (!url) return '';
+      let result = url;
+      if (isMobileDevice()) {
+        result = result.replace(/_UHD\.jpg/g, '_1080x1920.jpg');
+        result = result.replace(/_1920x1080\.jpg/g, '_1080x1920.jpg');
+      } else {
+        result = result.replace(/_UHD\.jpg/g, '_1920x1080.jpg');
+        result = result.replace(/_UHD\.jpg\?/g, '_1920x1080.jpg?');
+      }
+      result = result.replace(/&w=3840&h=2160&rs=1&c=4/g, '');
+      return result;
+    }
 
-            function getDetailUrl(title, dateStr) {
-                if (!dateStr) return '#';
-                let cleanTitle = title.replace(/\s*[-–]\s*\d{4}\/\d{2}\/\d{2}$/, '').trim();
-                const parts = dateStr.split('-');
-                const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-                d.setDate(d.getDate() - 1);
-                const y = d.getFullYear();
-                const m = String(d.getMonth() + 1).padStart(2, '0');
-                const day = String(d.getDate()).padStart(2, '0');
-                const dateParam = `${y}${m}${day}_1600`;
-                return `https://cn.bing.com/search?q=${encodeURIComponent(cleanTitle)}&form=hpcapt&filters=HpDate:%22${dateParam}%22+mgzv3configlist:%22BingQA_Encyclopedia_Layout%22`;
-            }
+    function get4kUrl(url) {
+      if (!url) return '';
+      if (url.includes('_UHD.jpg')) return url;
+      if (isMobileDevice()) {
+        return url.replace(/_1920x1080\.jpg/g, '_1080x1920.jpg');
+      } else {
+        return url.replace(/_1920x1080\.jpg/g, '_UHD.jpg');
+      }
+    }
 
-            function getTodayStr() {
-                const now = new Date();
-                const y = now.getFullYear();
-                const m = String(now.getMonth() + 1).padStart(2, '0');
-                const d = String(now.getDate()).padStart(2, '0');
-                return `${y}-${m}-${d}`;
-            }
+    function formatTitle(item) {
+      const mainTitle = item.subtitle || '';
+      const subTitle = item.title || '';
+      if (mainTitle && subTitle && mainTitle !== subTitle) {
+        return `${mainTitle} | ${subTitle}`;
+      }
+      return mainTitle || subTitle || '壁纸';
+    }
 
-            let wallpaperDataPromise = null;
-        
-            function fetchWallpaperData() {
-                if (!wallpaperDataPromise) {
-                    wallpaperDataPromise = fetch('json/bing_wallpaper.json')
-                        .then(resp => {
-                            if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                            return resp.json();
-                        })
-                        .catch(err => {
-                            wallpaperDataPromise = null;   // 失败后允许重试
-                            throw err;
-                        });
-                }
-                return wallpaperDataPromise;
-            }
-            
-            // ===== 加载今日壁纸（直接读取 bing_wallpaper.json 中当天的数据） =====
-            async function loadToday() {
-                const container = document.getElementById('todayCard');
-                const mobileBtnWrap = container.querySelector('.today-actions-mobile');
-                try {
-                    const data = await fetchWallpaperData();
+    function getDetailUrl(title, dateStr) {
+      if (!dateStr) return '#';
+      let cleanTitle = title.replace(/\s*[-–]\s*\d{4}\/\d{2}\/\d{2}$/, '').trim();
+      const parts = dateStr.split('-');
+      const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      d.setDate(d.getDate() - 1);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const dateParam = `${y}${m}${day}_1600`;
+      return `https://cn.bing.com/search?q=${encodeURIComponent(cleanTitle)}&form=hpcapt&filters=HpDate:%22${dateParam}%22+mgzv3configlist:%22BingQA_Encyclopedia_Layout%22`;
+    }
 
-                    if (!Array.isArray(data) || data.length === 0) {
-                        throw new Error('数据为空或格式无效');
-                    }
+    function getTodayStr() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
 
-                    // 取当天数据；若找不到，则退回取日期最新的一条
-                    const todayStr = getTodayStr();
-                    let item = data.find(d => d.date === todayStr);
+    let wallpaperDataPromise = null;
 
-                    if (!item) {
-                        console.warn(`⚠️ bing_wallpaper.json 中没有 ${todayStr} 的数据，改用最新一条`);
-                        const sorted = [...data].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-                        item = sorted[0];
-                    }
+    function fetchWallpaperData() {
+      if (!wallpaperDataPromise) {
+        wallpaperDataPromise = fetch('json/bing_wallpaper.json')
+          .then(resp => {
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            return resp.json();
+          })
+          .catch(err => {
+            wallpaperDataPromise = null;
+            throw err;
+          });
+      }
+      return wallpaperDataPromise;
+    }
 
-                    if (!item) {
-                        throw new Error('无可用数据');
-                    }
+    // ===== 加载今日壁纸 =====
+    async function loadToday() {
+      const container = document.getElementById('todayCard');
+      const mobileBtnWrap = container.querySelector('.today-actions-mobile');
+      try {
+        const data = await fetchWallpaperData();
 
-                    if (!item.date) {
-                        item.date = todayStr;
-                    }
+        if (!Array.isArray(data) || data.length === 0) throw new Error('数据为空或格式无效');
 
-                    const imgUrl = get1080pUrl(item.bing_url || item.url || '');
-                    const title = formatTitle(item);
-                    const desc = item.description || item.desc || '暂无详细介绍';
+        const todayStr = getTodayStr();
+        let item = data.find(d => d.date === todayStr);
 
-                    let descHtml = '';
-                    if (desc) {
-                        const paragraphs = desc.split('\n')
-                            .map(p => p.trim())
-                            .filter(p => p !== '');
-                        descHtml = paragraphs.map(p => `<p>${p}</p>`).join('');
-                    }
+        if (!item) {
+          console.warn(`⚠️ 没有 ${todayStr} 的数据，改用最新一条`);
+          const sorted = [...data].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+          item = sorted[0];
+        }
+        if (!item) throw new Error('无可用数据');
+        if (!item.date) item.date = todayStr;
 
-                    const detailUrl = getDetailUrl(item.title || item.subtitle || '', item.date);
-                    const htmlPcActions = `
-                        <div class="today-actions-pc">
-                            <a href="${get4kUrl(item.bing_url || item.url || '')}" class="btn btn-primary" target="_blank">${ICONS.download} UHD/4K</a>
-                            <a href="${get1080pUrl(item.bing_url || item.url || '')}" class="btn btn-secondary" target="_blank">${ICONS.download} 1080P</a>
-                            <a href="${detailUrl}" class="btn btn-secondary" target="_blank">${ICONS.book} 光影回顾</a>
-                            <a href="/archive.html" class="btn btn-secondary">${ICONS.archive} 壁纸归档</a>
-                            <span class="today-scroll-hint"><span>⬇ 滚动 · 查看轮播</span></span>
-                        </div>
-                    `;
-                    // 移动端右上角悬浮按钮
-                    mobileBtnWrap.innerHTML = `
-                        <a href="${get4kUrl(item.bing_url || item.url || '')}" class="btn btn-primary" target="_blank">${ICONS.download} UHD/4K</a>
-                        <a href="${get1080pUrl(item.bing_url || item.url || '')}" class="btn btn-secondary" target="_blank">${ICONS.download} 1080P</a>
-                        <a href="${detailUrl}" class="btn btn-secondary" target="_blank">${ICONS.book} 光影回顾</a>
-                        <a href="/archive.html" class="btn btn-secondary">${ICONS.archive} 壁纸归档</a>
-                    `;
+        const imgUrl = get1080pUrl(item.bing_url || item.url || '');
+        const title = formatTitle(item);
+        const desc = item.description || item.desc || '暂无详细介绍';
 
-                    container.innerHTML = `
-                        <img src="${imgUrl}" alt="${title}" loading="lazy" onerror="this.style.display='none'" />
-                        <div class="today-gradient"></div>
-                        <div class="today-overlay">
-                            <div class="today-title">${title}</div>
-                            <div class="today-desc">${descHtml || '暂无详细介绍'}</div>
-                            ${htmlPcActions}
-                        </div>
-                        <!-- 全局共用滚动提示，PC+移动端同时显示 -->
-                        <div class="global-scroll-hint today-scroll-hint">
-                            <span>滚动 · 查看历史</span>
-                        </div>
-                        <div class="today-actions-mobile">${mobileBtnWrap.innerHTML}</div>
-                    `;
-                    console.log('✅ 今日壁纸加载成功:', item.date);
-                } catch (e) {
-                    console.warn('今日壁纸加载失败:', e);
-                    container.innerHTML = `<div class="loading">⚠️ 加载失败: ${e.message}</div>`;
-                }
-            }
+        let descHtml = '';
+        if (desc) {
+          const paragraphs = desc.split('\n').map(p => p.trim()).filter(p => p !== '');
+          descHtml = paragraphs.map(p => `<p>${p}</p>`).join('');
+        }
 
-            // ============================================================
-            // ===== 轮播功能（直接读取 bing_wallpaper.json，含14天数据） =====
-            // ============================================================
-            let allData = [];
-            let currentIndex = 0;
-            let autoPlayTimer = null;
-            const AUTOPLAY_INTERVAL = 6000;
+        const detailUrl = getDetailUrl(item.title || item.subtitle || '', item.date);
 
-            const slide = document.getElementById('movieSlide');
-            const titleEl = document.getElementById('movieTitle');
-            const dateEl = document.getElementById('movieDate');
-            const downloadBtn = document.getElementById('movieDownloadBtn');
-            const viewBtn = document.getElementById('movieViewBtn');
-            const detailBtn = document.getElementById('movieDetailBtn');
-            const thumbnails = document.getElementById('movieThumbnails');
-            const prevBtn = document.getElementById('moviePrev');
-            const nextBtn = document.getElementById('movieNext');
+        const htmlPcActions = `
+          <div class="today-actions-pc">
+            <a href="${get4kUrl(item.bing_url || item.url || '')}" class="btn btn-primary" target="_blank">${ICONS.download} UHD/4K</a>
+            <a href="${get1080pUrl(item.bing_url || item.url || '')}" class="btn btn-secondary" target="_blank">${ICONS.download} 1080P</a>
+            <a href="${detailUrl}" class="btn btn-secondary" target="_blank">${ICONS.book} 光影回顾</a>
+            <a href="/archive.html" class="btn btn-secondary">${ICONS.archive} 壁纸归档</a>
+          </div>
+        `;
 
-            // ===== 日期工具函数 =====
-            function addDays(dateStr, days) {
-                const d = new Date(dateStr);
-                d.setDate(d.getDate() + days);
-                const y = d.getFullYear();
-                const m = String(d.getMonth() + 1).padStart(2, '0');
-                const day = String(d.getDate()).padStart(2, '0');
-                return `${y}-${m}-${day}`;
-            }
+        const mobileBtns = `
+          <a href="${get4kUrl(item.bing_url || item.url || '')}" class="btn btn-primary" target="_blank">${ICONS.download} UHD</a>
+          <a href="${get1080pUrl(item.bing_url || item.url || '')}" class="btn btn-secondary" target="_blank">${ICONS.download} 1080P</a>
+          <a href="${detailUrl}" class="btn btn-secondary" target="_blank">${ICONS.book} 回顾</a>
+          <a href="/archive.html" class="btn btn-secondary">${ICONS.archive} 归档</a>
+        `;
 
-            // ===== 加载轮播数据（直接读取 bing_wallpaper.json） =====
-            async function loadCarousel() {
-                try {
-                    const data = await fetchWallpaperData();
+        container.innerHTML = `
+          <img src="${imgUrl}" alt="${title}" loading="lazy" onerror="this.style.display='none'" />
+          <div class="today-gradient"></div>
+          <div class="today-overlay">
+            <div class="today-title">${title}</div>
+            <div class="today-desc">${descHtml || '暂无详细介绍'}</div>
+            ${htmlPcActions}
+          </div>
+          <div class="global-scroll-hint today-scroll-hint">
+            <span>滚动 · 查看历史</span>
+          </div>
+          <div class="today-actions-mobile">${mobileBtns}</div>
+        `;
+        console.log('✅ 今日壁纸加载成功:', item.date);
+      } catch (e) {
+        console.warn('今日壁纸加载失败:', e);
+        container.innerHTML = `<div class="loading" style="color: #aaa;">⚠️ 加载失败: ${e.message}</div>`;
+      }
+    }
 
-                    if (!Array.isArray(data) || data.length === 0) {
-                        throw new Error('数据为空或格式无效');
-                    }
+    // ============================================================
+    // 轮播
+    // ============================================================
+    let allData = [];
+    let currentIndex = 0;
+    let autoPlayTimer = null;
+    const AUTOPLAY_INTERVAL = 6000;
 
-                    // 按日期降序排序（最新在前）
-                    data.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    const slide = document.getElementById('movieSlide');
+    const titleEl = document.getElementById('movieTitle');
+    const dateEl = document.getElementById('movieDate');
+    const downloadBtn = document.getElementById('movieDownloadBtn');
+    const viewBtn = document.getElementById('movieViewBtn');
+    const detailBtn = document.getElementById('movieDetailBtn');
+    const thumbnails = document.getElementById('movieThumbnails');
+    const prevBtn = document.getElementById('moviePrev');
+    const nextBtn = document.getElementById('movieNext');
 
-                    allData = data;
-                    currentIndex = 0;
+    async function loadCarousel() {
+      try {
+        const data = await fetchWallpaperData();
+        if (!Array.isArray(data) || data.length === 0) throw new Error('数据为空或格式无效');
 
-                    console.log(`📊 轮播数据: ${allData.length} 条`);
-                    if (allData.length > 0) {
-                        console.log(`📌 播放顺序: ${allData[0]?.date} → ${allData[allData.length-1]?.date}`);
-                    }
+        data.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+        allData = data;
+        currentIndex = 0;
 
-                    // 生成缩略图
-                    thumbnails.innerHTML = '';
-                    allData.forEach((item, idx) => {
-                        const thumb = document.createElement('div');
-                        thumb.className = 'thumb-item' + (idx === 0 ? ' active' : '');
-                        const imgUrl = get1080pUrl(item.bing_url || item.url || '');
-                        thumb.style.backgroundImage = `url('${imgUrl}')`;
-                        thumb.title = item.title || '壁纸';
-                        thumb.addEventListener('click', () => goToSlide(idx));
-                        thumbnails.appendChild(thumb);
-                    });
+        thumbnails.innerHTML = '';
+        allData.forEach((item, idx) => {
+          const thumb = document.createElement('div');
+          thumb.className = 'thumb-item' + (idx === 0 ? ' active' : '');
+          const imgUrl = get1080pUrl(item.bing_url || item.url || '');
+          thumb.style.backgroundImage = `url('${imgUrl}')`;
+          thumb.title = item.title || '壁纸';
+          thumb.addEventListener('click', () => goToSlide(idx));
+          thumbnails.appendChild(thumb);
+        });
 
-                    updateSlide(0);
-                    resetAutoPlay();
+        updateSlide(0);
+        resetAutoPlay();
+      } catch (e) {
+        console.warn('轮播加载失败:', e);
+        slide.style.backgroundImage = '';
+        titleEl.textContent = '加载失败';
+      }
+    }
 
-                } catch (e) {
-                    console.warn('轮播加载失败:', e);
-                    slide.style.backgroundImage = '';
-                    titleEl.textContent = '加载失败';
-                }
-            }
+    function updateSlide(index) {
+      if (!allData || allData.length === 0) return;
+      const item = allData[index];
+      if (!item) return;
 
-            // ===== 更新幻灯片 =====
-            function updateSlide(index) {
-                if (!allData || allData.length === 0) return;
-                const item = allData[index];
-                if (!item) return;
+      const imgUrl = get1080pUrl(item.bing_url || item.url || '');
+      const title = item.title || '壁纸';
 
-                const imgUrl = get1080pUrl(item.bing_url || item.url || '');
-                const title = item.title || '壁纸';
+      slide.style.backgroundImage = `url('${imgUrl}')`;
+      titleEl.textContent = title;
+      dateEl.textContent = item.date || '';
 
-                slide.style.backgroundImage = `url('${imgUrl}')`;
-                titleEl.textContent = title;
-                dateEl.textContent = item.date || '';
+      const hd4k = get4kUrl(item.bing_url || item.url || '');
+      const hd1080 = get1080pUrl(item.bing_url || item.url || '');
+      downloadBtn.innerHTML = `${ICONS.download} UHD/4K`;
+      downloadBtn.href = hd4k;
+      document.getElementById('archiveBtn').innerHTML = `${ICONS.archive} 壁纸归档`;
+      viewBtn.innerHTML = `${ICONS.download} 1080P`;
+      viewBtn.href = hd1080;
 
-                const hd4k = get4kUrl(item.bing_url || item.url || '');
-                const hd1080 = get1080pUrl(item.bing_url || item.url || '');
-                downloadBtn.innerHTML = `${ICONS.download} UHD/4K`;
-                downloadBtn.href = hd4k;
-                document.getElementById('archiveBtn').innerHTML = `${ICONS.archive} 壁纸归档`;
-                viewBtn.innerHTML = `${ICONS.download} 1080P`;
-                viewBtn.href = hd1080;
+      const detailUrl = getDetailUrl(item.title || item.subtitle || '', item.date);
+      detailBtn.innerHTML = `${ICONS.book} 光影回顾`;
+      detailBtn.href = detailUrl;
 
-                const detailUrl = getDetailUrl(item.title || item.subtitle || '', item.date);
-                detailBtn.innerHTML = `${ICONS.book} 光影回顾`;
-                detailBtn.href = detailUrl;
+      document.querySelectorAll('.thumb-item').forEach((el, i) => {
+        el.classList.toggle('active', i === index);
+      });
 
-                document.querySelectorAll('.thumb-item').forEach((el, i) => {
-                    el.classList.toggle('active', i === index);
-                });
+      prevBtn.style.visibility = index === 0 ? 'hidden' : 'visible';
+      nextBtn.style.visibility = index >= allData.length - 1 ? 'hidden' : 'visible';
+    }
 
-                prevBtn.style.visibility = index === 0 ? 'hidden' : 'visible';
-                nextBtn.style.visibility = index >= allData.length - 1 ? 'hidden' : 'visible';
-            }
+    function nextSlide() {
+      if (!allData || allData.length === 0) return;
+      currentIndex = (currentIndex + 1) % allData.length;
+      updateSlide(currentIndex);
+    }
 
-            function nextSlide() {
-                if (!allData || allData.length === 0) return;
-                currentIndex = (currentIndex + 1) % allData.length;
-                updateSlide(currentIndex);
-            }
+    function prevSlide() {
+      if (!allData || allData.length === 0) return;
+      currentIndex = (currentIndex - 1 + allData.length) % allData.length;
+      updateSlide(currentIndex);
+    }
 
-            function prevSlide() {
-                if (!allData || allData.length === 0) return;
-                currentIndex = (currentIndex - 1 + allData.length) % allData.length;
-                updateSlide(currentIndex);
-            }
+    function goToSlide(index) {
+      if (!allData || allData.length === 0) return;
+      if (index < 0 || index >= allData.length) return;
+      currentIndex = index;
+      updateSlide(currentIndex);
+      resetAutoPlay();
+    }
 
-            function goToSlide(index) {
-                if (!allData || allData.length === 0) return;
-                if (index < 0 || index >= allData.length) return;
-                currentIndex = index;
-                updateSlide(currentIndex);
-                resetAutoPlay();
-            }
+    function resetAutoPlay() {
+      if (autoPlayTimer) {
+        clearInterval(autoPlayTimer);
+        autoPlayTimer = null;
+      }
+      if (allData.length > 1) {
+        autoPlayTimer = setInterval(nextSlide, AUTOPLAY_INTERVAL);
+      }
+    }
 
-            function resetAutoPlay() {
-                if (autoPlayTimer) {
-                    clearInterval(autoPlayTimer);
-                    autoPlayTimer = null;
-                }
-                if (allData.length > 1) {
-                    autoPlayTimer = setInterval(nextSlide, AUTOPLAY_INTERVAL);
-                }
-            }
+    // 事件绑定
+    slide.addEventListener('click', function(e) {
+      if (!e.target.closest('.movie-btn') && !e.target.closest('.thumb-item') && !e.target.closest('.movie-actions')) {
+        slide.classList.toggle('show-nav');
+      }
+    });
 
-            // ===== 轮播事件绑定 =====
-            slide.addEventListener("click", function(e){
-                if(!e.target.closest(".movie-btn") && !e.target.closest(".thumb-item") && !e.target.closest(".movie-actions")){
-                    slide.classList.toggle("show-nav");
-                }
-            });
+    prevBtn.addEventListener('click', (e) => { e.stopPropagation(); prevSlide(); resetAutoPlay(); });
+    nextBtn.addEventListener('click', (e) => { e.stopPropagation(); nextSlide(); resetAutoPlay(); });
 
-            prevBtn.addEventListener('click', (e) => { e.stopPropagation(); prevSlide(); resetAutoPlay(); });
-            nextBtn.addEventListener('click', (e) => { e.stopPropagation(); nextSlide(); resetAutoPlay(); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') { prevSlide(); resetAutoPlay(); e.preventDefault(); }
+      if (e.key === 'ArrowRight') { nextSlide(); resetAutoPlay(); e.preventDefault(); }
+    });
 
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'ArrowLeft') { prevSlide(); resetAutoPlay(); e.preventDefault(); }
-                if (e.key === 'ArrowRight') { nextSlide(); resetAutoPlay(); e.preventDefault(); }
-            });
+    let touchStartX = 0;
+    slide.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    slide.addEventListener('touchend', (e) => {
+      const diff = touchStartX - e.changedTouches[0].screenX;
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) { nextSlide(); resetAutoPlay(); } else { prevSlide(); resetAutoPlay(); }
+      }
+    }, { passive: true });
 
-            let touchStartX = 0;
-            slide.addEventListener('touchstart', (e) => {
-                touchStartX = e.changedTouches[0].screenX;
-            }, { passive: true });
-            slide.addEventListener('touchend', (e) => {
-                const diff = touchStartX - e.changedTouches[0].screenX;
-                if (Math.abs(diff) > 50) {
-                    if (diff > 0) { nextSlide(); resetAutoPlay(); } else { prevSlide(); resetAutoPlay(); }
-                }
-            }, { passive: true });
-
-            // ===== 启动 =====
-            loadToday();
-            loadCarousel();
-            console.log('✨ 整屏切换已启用');
-        })();
-    </script>
+    // 启动
+    loadToday();
+    loadCarousel();
+    console.log('✨ 全新光影风格已启用');
+  })();
+</script>
 </body>
 </html>
