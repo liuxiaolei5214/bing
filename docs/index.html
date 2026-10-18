@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>必应壁纸 · 首页</title>
-    <meta name="description" content="每日更新的必应超清壁纸，4K 高清下载" />
+    <title>Bing 每日壁纸 · 光影回顾</title>
+    <meta name="description" content="每日更新的必应超清壁纸，4K 高清下载 · 光影回顾" />
     <link rel="icon" href="/favicon.avif">
     <style>
         /* ===== 基础重置 & 隐藏滚动条 ===== */
@@ -50,44 +50,48 @@
             padding: 0;
         }
 
-        /* ===== 全新顶部导航栏（带从上到下渐变） ===== */
+        /* ===== 顶部悬浮胶囊毛玻璃导航 ===== */
         .top-nav {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 100;
             display: flex;
             align-items: center;
-            justify-content: center; /* 居中排列 */
-            padding: 16px 24px 40px; /* 底部留足渐变空间 */
-            background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%);
-            pointer-events: none; /* 让下层可点击，子元素恢复 */
+            gap: 4px;
+            padding: 6px 10px;
+            background: rgba(40, 40, 40, 0.45);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
-        .nav-center {
-            display: flex;
-            align-items: center;
-            gap: 24px; /* 文字间距拉大 */
-            pointer-events: auto;
-        }
-
-        .nav-center .nav-item {
-            font-size: 0.95rem;
+        .top-nav .nav-item {
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 0.85rem;
             font-weight: 400;
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.75);
             text-decoration: none;
-            transition: color 0.25s ease;
+            transition: all 0.25s ease;
             white-space: nowrap;
-            text-shadow: 0 1px 4px rgba(0,0,0,0.5); /* 保证文字可读 */
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-family: inherit;
         }
 
-        .nav-center .nav-item:hover {
+        .top-nav .nav-item:hover {
             color: #fff;
+            background: rgba(255, 255, 255, 0.1);
         }
 
-        .nav-center .nav-item.active {
+        .top-nav .nav-item.active {
             color: #fff;
+            background: rgba(255, 255, 255, 0.18);
             font-weight: 500;
         }
 
@@ -121,131 +125,140 @@
             display: block;
         }
 
-        /* ===== 内容容器：左下角，无容器背景 ===== */
+        /* 底部渐变遮罩 */
+        #todayCard .today-gradient {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 55%;
+            z-index: 2;
+            background: linear-gradient(to top, 
+                rgba(0, 0, 0, 0.95) 0%, 
+                rgba(0, 0, 0, 0.7) 30%,
+                rgba(0, 0, 0, 0.2) 65%,
+                transparent 100%
+            );
+            pointer-events: none;
+        }
+
+        /* 内容容器：左下角 */
         #todayCard .today-overlay {
             position: absolute;
             bottom: 0;
             left: 0;
-            width: 100%;
-            max-width: 1000px; /* 限制最大宽度，防止在超宽屏上太长 */
-            z-index: 10;
-            padding: 0 0 40px 40px; /* 左下角留白 */
+            right: 0;
+            z-index: 3;
+            padding: 40px 48px 36px;
+            pointer-events: none;
             display: flex;
             flex-direction: column;
-            pointer-events: none; /* 让图片可点击 */
+            justify-content: flex-end;
+            min-height: 55%;
         }
 
-        /* 标题 —— 主标题在上，副标题右对齐在下 */
+        /* 标题 —— 恢复最初样式 */
         #todayCard .today-overlay .today-title {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            margin-bottom: 16px;
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #fff;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
             pointer-events: auto;
         }
 
-        #todayCard .today-overlay .title-main {
-            font-size: 1.6rem;
-            font-weight: 500;
-            color: #fff;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
-            text-align: left;
-            text-shadow: 0 2px 12px rgba(0,0,0,0.6);
-        }
-
-        #todayCard .today-overlay .title-sub {
-            font-size: 1rem;
-            font-weight: 400;
-            color: rgba(255, 255, 255, 0.85);
-            width: 100%;
-            text-align: right; /* 右对齐 */
-            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
-        }
-
-        /* 描述文字 */
+        /* 描述文字 —— 恢复最初样式 */
         #todayCard .today-overlay .today-desc {
             font-size: 0.95rem;
             line-height: 1.8;
-            color: rgba(255, 255, 255, 0.8); /* 白色但透明度降低 */
-            max-height: 28vh;
+            opacity: 0.92;
+            white-space: normal;
+            word-break: break-word;
+            color: #f0f0f0;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+            pointer-events: auto;
+            max-height: 40vh;
             overflow-y: auto;
             scrollbar-width: none;
-            text-align: left;
-            margin-bottom: 24px;
             max-width: 800px;
-            text-shadow: 0 1px 4px rgba(0,0,0,0.5);
-            pointer-events: auto;
-        }
-        #todayCard .today-overlay .today-desc::-webkit-scrollbar {
-            width: 0px;
-        }
-        #todayCard .today-overlay .today-desc p {
-            text-indent: 2em;
-            margin-bottom: 0.4em;
-        }
-        #todayCard .today-overlay .today-desc p:last-child {
-            margin-bottom: 0;
         }
 
-        /* 按钮组 PC端：靠左 */
+        #todayCard .today-overlay .today-desc::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        #todayCard .today-overlay .today-desc p {
+            text-indent: 2em;
+            margin: 0;
+            padding: 0;
+            line-height: 1.8;
+        }
+
+        #todayCard .today-overlay .today-desc p + p {
+            margin-top: 0;
+        }
+
+        /* ===== 按钮组 PC端：左下角 ===== */
         #todayCard .today-overlay .today-actions-pc {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            margin-top: 12px;
             pointer-events: auto;
+            position: relative;
         }
 
         /* 移动端悬浮按钮 */
         #todayCard .today-actions-mobile {
             display: none;
             position: absolute;
-            top: 80px;
-            right: 16px;
+            top: 16px;
+            right: 12px;
             flex-direction: row;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 6px;
             z-index: 10;
-            max-width: calc(100vw - 32px);
+            max-width: calc(100vw - 24px);
         }
 
         /* 按钮基础样式 */
         .btn {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 8px 20px;
-            border-radius: 60px;
-            font-size: 0.8rem;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-size: 0.78rem;
             font-weight: 400;
+            letter-spacing: 0.8px;
             text-decoration: none;
             color: #f0ede8;
-            background: rgba(30, 32, 38, 0.45);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: rgba(200, 200, 200, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(4px);
             transition: all 0.25s;
             white-space: nowrap;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
+
         .btn svg {
             flex-shrink: 0;
+            margin-right: 4px;
             width: 14px;
             height: 14px;
         }
-        .btn:hover {
-            background: rgba(60, 64, 72, 0.6);
-            transform: translateY(-1px);
-        }
+
         .btn-primary {
-            background: rgba(210, 180, 140, 0.25);
-            border-color: rgba(210, 180, 140, 0.4);
-            color: #fff;
+            background: rgba(220, 210, 180, 0.15);
+            border-color: rgba(240, 230, 200, 0.2);
         }
         .btn-primary:hover {
-            background: rgba(210, 180, 140, 0.4);
+            background: rgba(220, 210, 180, 0.3);
+            transform: scale(1.03);
+        }
+        .btn-secondary:hover {
+            background: rgba(200, 200, 200, 0.15);
+            transform: scale(1.02);
         }
 
         /* ===== 加载状态 ===== */
@@ -255,67 +268,91 @@
             text-align: center;
         }
 
-        /* ===== 响应式 ===== */
-        @media (max-width: 768px) {
-            .nav-center {
-                gap: 16px;
-            }
-            .nav-center .nav-item {
-                font-size: 0.85rem;
-            }
-
-            #todayCard .today-overlay {
-                padding: 0 0 24px 20px;
-                max-width: 100%;
-            }
-            #todayCard .today-overlay .title-main {
-                font-size: 1.3rem;
-            }
-            #todayCard .today-overlay .title-sub {
-                font-size: 0.85rem;
-            }
-            #todayCard .today-overlay .today-desc {
-                font-size: 0.85rem;
-                max-height: 30vh;
-                max-width: calc(100% - 20px);
-            }
-            
+        /* ===== 响应式 · 移动端 ===== */
+        @media (max-width: 640px) {
             #todayCard .today-overlay .today-actions-pc {
                 display: none;
             }
             #todayCard .today-actions-mobile {
                 display: flex;
             }
-            .btn {
-                font-size: 0.7rem;
-                padding: 6px 12px;
+            #todayCard .today-gradient {
+                height: 48%;
+            }
+            #todayCard .today-overlay {
+                padding: 20px 20px 24px;
+                min-height: 42%;
+                bottom: 0;
+            }
+            #todayCard .today-overlay .today-title {
+                font-size: 1.2rem;
+                margin-bottom: 8px;
+                max-width: 95%;
+            }
+            #todayCard .today-overlay .today-desc {
+                font-size: 0.82rem;
+                line-height: 1.7;
+                max-height: 32vh;
+                max-width: 100%;
+            }
+            #todayCard .today-actions-mobile .btn {
+                font-size: 0.6rem;
+                padding: 5px 10px;
+                gap: 4px;
+            }
+            #todayCard .today-actions-mobile .btn svg {
+                width: 12px;
+                height: 12px;
+            }
+            /* 顶部深色渐变，让导航栏和移动按钮可读 */
+            #todayCard::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 140px;
+                background: linear-gradient(to bottom, rgba(0, 0, 0, 0.65), transparent);
+                z-index: 1;
+                pointer-events: none;
+            }
+
+            .top-nav {
+                top: 12px;
+                padding: 4px 8px;
+                gap: 2px;
+            }
+            .top-nav .nav-item {
+                padding: 5px 12px;
+                font-size: 0.72rem;
             }
         }
 
         @media (max-width: 480px) {
-            #todayCard .today-overlay .title-main {
+            #todayCard .today-overlay .today-title {
                 font-size: 1.1rem;
             }
-            #todayCard .today-overlay .title-sub {
+            #todayCard .today-overlay .today-desc {
                 font-size: 0.75rem;
+                line-height: 1.6;
+                max-height: 28vh;
             }
-            .nav-center .nav-item {
-                font-size: 0.8rem;
+            .top-nav .nav-item {
+                padding: 4px 10px;
+                font-size: 0.68rem;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- ===== 顶部导航栏 ===== -->
+    <!-- ===== 顶部悬浮胶囊毛玻璃导航 ===== -->
     <nav class="top-nav">
-        <div class="nav-center">
-            <a href="#" class="nav-item active">今日</a>
-            <a href="/archive.html" class="nav-item">历史</a>
-            <a href="/archive.html" class="nav-item">归档</a>
-            <a href="/api.html" class="nav-item">API</a>
-            <a href="/about.html" class="nav-item">关于</a>
-        </div>
+        <a href="#" class="nav-item active">今日</a>
+        <a href="/archive.html" class="nav-item">历史</a>
+        <a href="/archive.html" class="nav-item">归档</a>
+        <a href="/api.html" class="nav-item">API</a>
+        <a href="/about.html" class="nav-item">关于</a>
     </nav>
 
     <!-- ===== 首页壁纸 - 全屏 ===== -->
@@ -323,6 +360,7 @@
         <section id="today" class="fullscreen-section">
             <div id="todayCard">
                 <div class="loading">加载中...</div>
+                <!-- 移动端悬浮右上角按钮容器 -->
                 <div class="today-actions-mobile"></div>
             </div>
         </section>
@@ -372,9 +410,9 @@
                 const mainTitle = item.subtitle || '';
                 const subTitle = item.title || '';
                 if (mainTitle && subTitle && mainTitle !== subTitle) {
-                    return { main: mainTitle, sub: subTitle };
+                    return `${mainTitle} | ${subTitle}`;
                 }
-                return { main: mainTitle || subTitle || '壁纸', sub: '' };
+                return mainTitle || subTitle || '壁纸';
             }
 
             function getDetailUrl(title, dateStr) {
@@ -437,10 +475,9 @@
                     if (!item.date) item.date = todayStr;
 
                     const imgUrl = get1080pUrl(item.bing_url || item.url || '');
-                    const titles = formatTitle(item);
+                    const title = formatTitle(item);
                     const desc = item.description || item.desc || '暂无详细介绍';
 
-                    // 拆分段落
                     let descHtml = '';
                     if (desc) {
                         const paragraphs = desc.split('\n')
@@ -449,17 +486,9 @@
                         descHtml = paragraphs.map(p => `<p>${p}</p>`).join('');
                     }
 
-                    // 格式化日期（把 2026-10-18 改成 2026/10/18）
-                    const displayDate = item.date ? item.date.replace(/-/g, '/') : '';
                     const detailUrl = getDetailUrl(item.title || item.subtitle || '', item.date);
                     
-                    // 重构标题：第一行地名，第二行右对齐的副标题+日期
-                    const titleSubText = titles.sub ? `- ${titles.sub}（${displayDate}）` : `- （${displayDate}）`;
-                    const titleHtml = `
-                        <div class="title-main">${titles.main}</div>
-                        <div class="title-sub">${titleSubText}</div>
-                    `;
-                    
+                    // PC端按钮组
                     const htmlPcActions = `
                         <div class="today-actions-pc">
                             <a href="${get4kUrl(item.bing_url || item.url || '')}" class="btn btn-primary" target="_blank">${ICONS.download} UHD/4K</a>
@@ -469,6 +498,7 @@
                         </div>
                     `;
                     
+                    // 移动端悬浮按钮
                     const mobileBtnHtml = `
                         <a href="${get4kUrl(item.bing_url || item.url || '')}" class="btn btn-primary" target="_blank">${ICONS.download} UHD/4K</a>
                         <a href="${get1080pUrl(item.bing_url || item.url || '')}" class="btn btn-secondary" target="_blank">${ICONS.download} 1080P</a>
@@ -477,11 +507,10 @@
                     `;
 
                     container.innerHTML = `
-                        <img src="${imgUrl}" alt="${titles.main}" loading="lazy" onerror="this.style.display='none'" />
+                        <img src="${imgUrl}" alt="${title}" loading="lazy" onerror="this.style.display='none'" />
+                        <div class="today-gradient"></div>
                         <div class="today-overlay">
-                            <div class="today-title">
-                                ${titleHtml}
-                            </div>
+                            <div class="today-title">${title}</div>
                             <div class="today-desc">${descHtml || '暂无详细介绍'}</div>
                             ${htmlPcActions}
                         </div>
