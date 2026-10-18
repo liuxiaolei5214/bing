@@ -100,10 +100,6 @@
             background: #14191f;
         }
 
-        /* 
-         * ===== 层级清晰 =====
-         * 图片最底层，然后统一遮罩，最后是文字/按钮/缩略图 
-         */
         .movie-slide {
             width: 100%;
             height: 100%;
@@ -115,33 +111,32 @@
             position: relative;
         }
 
-        /* ===== 唯一的全局渐变遮罩：覆盖整个底部 ===== */
+        /* ===== 唯一全局遮罩（照片上方，内容下方） ===== */
         .movie-global-overlay {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 50%;
-            z-index: 10; /* 在图片之上，内容之下 */
+            height: 55%; /* 加长一点，让渐变过渡更自然 */
+            z-index: 10; 
             background: linear-gradient(to top, 
                 rgba(0, 0, 0, 0.9) 0%,   
-                rgba(0, 0, 0, 0.5) 40%,
-                rgba(0, 0, 0, 0.0) 100%
+                rgba(0, 0, 0, 0.4) 40%,
+                transparent 100%
             );
-            pointer-events: none; /* 让鼠标穿透，不影响底部区域点击 */
+            pointer-events: none;
         }
 
-        /* 底部内容容器：在遮罩之上 */
+        /* ===== 底部内容容器（纯净层，无任何背景） ===== */
         .movie-bottom-container {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            z-index: 20;
+            z-index: 20; /* 位于遮罩之上 */
             display: flex;
             flex-direction: column;
             width: 100%;
-            pointer-events: none; /* 穿透，防止阻挡鼠标穿透 */
         }
 
         /* 标题行 + 按钮 */
@@ -151,11 +146,9 @@
             align-items: flex-end;
             padding: 0 40px 16px;
             gap: 20px;
-            pointer-events: none;
         }
 
         .movie-title-bar {
-            pointer-events: auto;
             flex-shrink: 1;
             min-width: 0;
         }
@@ -175,7 +168,6 @@
             text-overflow: ellipsis;
         }
 
-        /* 隐藏掉日期 */
         .movie-title-bar .movie-date {
             display: none;
         }
@@ -186,7 +178,6 @@
             flex-wrap: wrap;
             gap: 10px;
             align-items: center;
-            pointer-events: auto;
             flex-shrink: 0;
         }
 
@@ -222,35 +213,35 @@
             transform: scale(1.02);
         }
 
-        /* ===== 底部缩略图：无背景，直接悬浮于全局渐变之上 ===== */
+        /* ===== 底部缩略图：纯净展示，无任何背景 ===== */
         .movie-thumbnails {
             display: flex;
             align-items: center;
             width: 100%;
             overflow-x: auto;
             scrollbar-width: none;
-            background: transparent; /* 彻底移除遮罩 */
-            border-top: none;        /* 彻底移除分割线 */
-            padding: 10px 40px 16px; 
+            /* 彻底去除背景和边框 */
+            background: transparent; 
+            border: none;
+            padding: 10px 40px 20px; 
             gap: 8px;
-            pointer-events: auto;    /* 恢复点击 */
         }
         .movie-thumbnails::-webkit-scrollbar {
             display: none;
         }
 
         .movie-thumbnails .thumb-item {
-            flex: 1;
-            min-width: 60px;
-            height: 50px;
+            /* 使用固定尺寸，防止拉伸变形 */
+            width: 72px;
+            height: 46px;
+            flex-shrink: 0;
             border-radius: 4px;
             background-size: cover;
             background-position: center;
             cursor: pointer;
             border: 2px solid transparent;
             transition: all 0.25s;
-            opacity: 0.7; 
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            opacity: 0.6; 
         }
 
         .movie-thumbnails .thumb-item.active {
@@ -281,7 +272,7 @@
             align-items: center;
             justify-content: center;
             transition: all 0.25s;
-            z-index: 30; /* 层级最高，在一切之上 */
+            z-index: 30; 
             opacity: 0;
             visibility: hidden;
             padding: 0;
@@ -362,8 +353,8 @@
             }
 
             .movie-thumbnails .thumb-item {
-                min-width: 40px;
-                height: 38px;
+                width: 50px;
+                height: 34px;
             }
 
             .movie-btn {
@@ -378,7 +369,7 @@
             .movie-btn.next { right: 0.4rem; }
             
             .movie-global-overlay {
-                height: 55%;
+                height: 60%;
             }
         }
     </style>
@@ -403,7 +394,7 @@
                 <!-- 唯一的全局渐变遮罩 -->
                 <div class="movie-global-overlay"></div>
                 
-                <!-- 内容区（层级高于遮罩） -->
+                <!-- 内容区（纯文字和图片，无任何底色） -->
                 <div class="movie-bottom-container">
                     <!-- 标题行 + 按钮 -->
                     <div class="movie-bottom-bar">
