@@ -50,7 +50,7 @@
             padding: 0;
         }
 
-        /* ===== 全新顶部导航栏（图2样式） ===== */
+        /* ===== 全新顶部导航栏（带从上到下渐变） ===== */
         .top-nav {
             position: fixed;
             top: 0;
@@ -59,97 +59,36 @@
             z-index: 100;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 12px 24px;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 100%);
+            justify-content: center; /* 居中排列 */
+            padding: 16px 24px 40px; /* 底部留足渐变空间 */
+            background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%);
             pointer-events: none; /* 让下层可点击，子元素恢复 */
         }
 
-        .nav-left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #fff;
-            font-size: 1.1rem;
-            font-weight: 600;
-            pointer-events: auto;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        }
-
-        .nav-left svg {
-            width: 24px;
-            height: 24px;
-            fill: currentColor;
-        }
-
         .nav-center {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
             display: flex;
             align-items: center;
-            gap: 4px;
-            padding: 6px 10px;
-            background: rgba(30, 30, 30, 0.4);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-radius: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            gap: 24px; /* 文字间距拉大 */
             pointer-events: auto;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
         }
 
         .nav-center .nav-item {
-            padding: 6px 16px;
-            border-radius: 30px;
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             font-weight: 400;
-            color: rgba(255, 255, 255, 0.8);
+            color: rgba(255, 255, 255, 0.7);
             text-decoration: none;
-            transition: all 0.25s ease;
+            transition: color 0.25s ease;
             white-space: nowrap;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.5); /* 保证文字可读 */
         }
 
         .nav-center .nav-item:hover {
             color: #fff;
-            background: rgba(255, 255, 255, 0.1);
         }
 
         .nav-center .nav-item.active {
             color: #fff;
-            background: rgba(255, 255, 255, 0.2);
             font-weight: 500;
-        }
-
-        .nav-right {
-            display: flex;
-            align-items: center;
-            pointer-events: auto;
-        }
-
-        .theme-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: rgba(30, 30, 30, 0.4);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .theme-btn:hover {
-            background: rgba(60, 60, 60, 0.6);
-        }
-        .theme-btn svg {
-            width: 18px;
-            height: 18px;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 2;
         }
 
         /* ===== 今日壁纸区域 ===== */
@@ -182,85 +121,80 @@
             display: block;
         }
 
-        /* 取消底部铺满的渐变，改为容器半透明遮罩 */
-
-        /* ===== 内容容器：底部居中，半透明毛玻璃 ===== */
+        /* ===== 内容容器：左下角，无容器背景 ===== */
         #todayCard .today-overlay {
             position: absolute;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 900px;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            max-width: 1000px; /* 限制最大宽度，防止在超宽屏上太长 */
             z-index: 10;
-            padding: 30px 40px;
-            background: rgba(20, 24, 30, 0.65);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
+            padding: 0 0 40px 40px; /* 左下角留白 */
             display: flex;
             flex-direction: column;
-            pointer-events: auto;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+            pointer-events: none; /* 让图片可点击 */
         }
 
-        /* 标题 —— 主标题居中，副标题右对齐 */
+        /* 标题 —— 主标题在上，副标题右对齐在下 */
         #todayCard .today-overlay .today-title {
             display: flex;
             flex-direction: column;
-            align-items: center; /* 整体居中 */
-            margin-bottom: 12px;
+            width: 100%;
+            margin-bottom: 16px;
+            pointer-events: auto;
         }
 
         #todayCard .today-overlay .title-main {
-            font-size: 1.3rem;
+            font-size: 1.6rem;
             font-weight: 500;
             color: #fff;
             letter-spacing: 0.5px;
             margin-bottom: 6px;
-            text-align: center;
-            width: 100%;
+            text-align: left;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.6);
         }
 
         #todayCard .today-overlay .title-sub {
-            font-size: 0.95rem;
+            font-size: 1rem;
             font-weight: 400;
             color: rgba(255, 255, 255, 0.85);
             width: 100%;
-            text-align: right; /* 右对齐，实现与上方右侧对齐 */
-            letter-spacing: 0.2px;
+            text-align: right; /* 右对齐 */
+            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
         }
 
         /* 描述文字 */
         #todayCard .today-overlay .today-desc {
-            font-size: 0.9rem;
-            line-height: 1.7;
-            color: rgba(255, 255, 255, 0.8);
-            max-height: 22vh;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.8); /* 白色但透明度降低 */
+            max-height: 28vh;
             overflow-y: auto;
             scrollbar-width: none;
             text-align: left;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
+            max-width: 800px;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+            pointer-events: auto;
         }
         #todayCard .today-overlay .today-desc::-webkit-scrollbar {
             width: 0px;
         }
         #todayCard .today-overlay .today-desc p {
             text-indent: 2em;
-            margin-bottom: 0.3em;
+            margin-bottom: 0.4em;
         }
         #todayCard .today-overlay .today-desc p:last-child {
             margin-bottom: 0;
         }
 
-        /* 按钮组 PC端居中 */
+        /* 按钮组 PC端：靠左 */
         #todayCard .today-overlay .today-actions-pc {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            justify-content: center;
             gap: 12px;
+            pointer-events: auto;
         }
 
         /* 移动端悬浮按钮 */
@@ -281,18 +215,20 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 7px 18px;
+            padding: 8px 20px;
             border-radius: 60px;
             font-size: 0.8rem;
             font-weight: 400;
             text-decoration: none;
             color: #f0ede8;
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(30, 32, 38, 0.45);
             border: 1px solid rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             transition: all 0.25s;
             white-space: nowrap;
             cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
         .btn svg {
             flex-shrink: 0;
@@ -300,7 +236,7 @@
             height: 14px;
         }
         .btn:hover {
-            background: rgba(255, 255, 255, 0.18);
+            background: rgba(60, 64, 72, 0.6);
             transform: translateY(-1px);
         }
         .btn-primary {
@@ -322,50 +258,28 @@
         /* ===== 响应式 ===== */
         @media (max-width: 768px) {
             .nav-center {
-                display: none; /* 移动端隐藏导航条，可放更多空间，或者保留的话改下间距 */
-            }
-            /* 重新定义移动端导航位置和样式 */
-            .top-nav {
-                padding: 10px 16px;
-                justify-content: space-between;
-            }
-            .nav-center {
-                display: flex;
-                position: static;
-                transform: none;
-                background: transparent;
-                border: none;
-                padding: 0;
-                gap: 10px;
-                box-shadow: none;
+                gap: 16px;
             }
             .nav-center .nav-item {
-                padding: 4px 8px;
-                font-size: 0.8rem;
-            }
-            .nav-center .nav-item.active {
-                background: rgba(255, 255, 255, 0.2);
-            }
-            .nav-left span {
-                display: none; /* 移动端隐藏文字保留图标 */
+                font-size: 0.85rem;
             }
 
             #todayCard .today-overlay {
-                bottom: 20px;
-                width: 95%;
-                padding: 20px;
-                border-radius: 16px;
+                padding: 0 0 24px 20px;
+                max-width: 100%;
             }
             #todayCard .today-overlay .title-main {
-                font-size: 1.1rem;
+                font-size: 1.3rem;
             }
             #todayCard .today-overlay .title-sub {
-                font-size: 0.8rem;
+                font-size: 0.85rem;
             }
             #todayCard .today-overlay .today-desc {
-                font-size: 0.8rem;
-                max-height: 25vh;
+                font-size: 0.85rem;
+                max-height: 30vh;
+                max-width: calc(100% - 20px);
             }
+            
             #todayCard .today-overlay .today-actions-pc {
                 display: none;
             }
@@ -374,47 +288,33 @@
             }
             .btn {
                 font-size: 0.7rem;
-                padding: 5px 10px;
+                padding: 6px 12px;
             }
         }
 
         @media (max-width: 480px) {
             #todayCard .today-overlay .title-main {
-                font-size: 1rem;
+                font-size: 1.1rem;
             }
             #todayCard .today-overlay .title-sub {
                 font-size: 0.75rem;
             }
             .nav-center .nav-item {
-                font-size: 0.75rem;
-                padding: 4px 6px;
+                font-size: 0.8rem;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- ===== 全新顶部导航栏 ===== -->
+    <!-- ===== 顶部导航栏 ===== -->
     <nav class="top-nav">
-        <div class="nav-left">
-            <!-- Bing Wallpaper Logo 图标 -->
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 3h18v2H3V3zm0 4h18v2H3V7zm0 4h18v2H3v-2zm0 4h12v2H3v-2zm0 4h12v2H3v-2z" fill="none"/>
-                <path d="M4 2h2v20H4V2zm14 0h2v20h-2V2z" fill="none"/>
-            </svg>
-            <span>必应壁纸</span>
-        </div>
         <div class="nav-center">
             <a href="#" class="nav-item active">今日</a>
             <a href="/archive.html" class="nav-item">历史</a>
             <a href="/archive.html" class="nav-item">归档</a>
             <a href="/api.html" class="nav-item">API</a>
             <a href="/about.html" class="nav-item">关于</a>
-        </div>
-        <div class="nav-right">
-            <button class="theme-btn" title="切换主题">
-                <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-            </button>
         </div>
     </nav>
 
@@ -551,13 +451,13 @@
 
                     // 格式化日期（把 2026-10-18 改成 2026/10/18）
                     const displayDate = item.date ? item.date.replace(/-/g, '/') : '';
-
                     const detailUrl = getDetailUrl(item.title || item.subtitle || '', item.date);
                     
-                    // 重新组织标题结构
+                    // 重构标题：第一行地名，第二行右对齐的副标题+日期
+                    const titleSubText = titles.sub ? `- ${titles.sub}（${displayDate}）` : `- （${displayDate}）`;
                     const titleHtml = `
                         <div class="title-main">${titles.main}</div>
-                        ${titles.sub ? `<div class="title-sub">- ${titles.sub} （${displayDate}）</div>` : (displayDate ? `<div class="title-sub">- （${displayDate}）</div>` : '')}
+                        <div class="title-sub">${titleSubText}</div>
                     `;
                     
                     const htmlPcActions = `
