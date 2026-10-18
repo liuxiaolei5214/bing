@@ -111,18 +111,18 @@
             position: relative;
         }
 
-        /* 底部渐变遮罩 */
+        /* ===== 优化：底部渐变遮罩减轻，高度降低 ===== */
         .movie-bottom-overlay {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 50%;
+            height: 40%; /* 原 50%，稍微调低 */
             z-index: 12;
             background: linear-gradient(to top, 
-                rgba(0, 0, 0, 0.95) 0%, 
-                rgba(0, 0, 0, 0.7) 30%,
-                rgba(0, 0, 0, 0.2) 65%,
+                rgba(0, 0, 0, 0.85) 0%,   /* 底部不再死黑 */
+                rgba(0, 0, 0, 0.45) 40%,
+                rgba(0, 0, 0, 0.05) 80%,
                 transparent 100%
             );
             pointer-events: none;
@@ -145,7 +145,7 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            padding: 0 40px 20px;
+            padding: 0 40px 16px;
             pointer-events: none;
             gap: 20px;
         }
@@ -223,18 +223,18 @@
             transform: scale(1.02);
         }
 
-        /* ===== 底部缩略图：矩形、铺满左右、均匀拉伸 ===== */
+        /* ===== 优化：底部缩略图区域提亮 ===== */
         .movie-thumbnails {
             display: flex;
             align-items: center;
             width: 100%;
             overflow-x: auto;
             scrollbar-width: none;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 10px 40px; /* 右侧同样留出 40px，与左侧对齐 */
+            background: rgba(15, 20, 25, 0.25); /* 降低背景深度，透出底层图片 */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(255, 255, 255, 0.08); /* 微弱高光边框 */
+            padding: 12px 40px;
             gap: 8px;
         }
         .movie-thumbnails::-webkit-scrollbar {
@@ -242,8 +242,8 @@
         }
 
         .movie-thumbnails .thumb-item {
-            flex: 1;           /* 等分剩余空间，拉伸填满 */
-            min-width: 60px;   /* 防止过小 */
+            flex: 1;
+            min-width: 60px;
             height: 50px;
             border-radius: 4px;
             background-size: cover;
@@ -251,7 +251,7 @@
             cursor: pointer;
             border: 2px solid transparent;
             transition: all 0.25s;
-            opacity: 0.5;
+            opacity: 0.7; /* 原 0.5，提升未选中状态亮度 */
             box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
 
@@ -263,7 +263,7 @@
         }
 
         .movie-thumbnails .thumb-item:hover {
-            opacity: 0.9;
+            opacity: 1;
         }
 
         /* ===== 左右切换箭头 ===== */
@@ -379,7 +379,7 @@
             .movie-btn.next { right: 0.4rem; }
             
             .movie-bottom-overlay {
-                height: 55%;
+                height: 45%;
             }
         }
     </style>
@@ -570,8 +570,6 @@
 
                 slide.style.backgroundImage = `url('${imgUrl}')`;
                 titleEl.textContent = title;
-                
-                // 此处原代码有赋值日期，现因 CSS 已设为 display: none，不会显示
 
                 const hd4k = get4kUrl(item.bing_url || item.url || '');
                 const hd1080 = get1080pUrl(item.bing_url || item.url || '');
