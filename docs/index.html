@@ -142,7 +142,7 @@
             pointer-events: none;
         }
 
-        /* 内容容器：左下角 */
+        /* 内容容器：左下角，高度自适应 */
         #todayCard .today-overlay {
             position: absolute;
             bottom: 0;
@@ -154,20 +154,19 @@
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
-            min-height: 55%;
         }
 
-        /* 标题 —— 恢复最初样式 */
+        /* 标题 */
         #todayCard .today-overlay .today-title {
             font-size: 1.6rem;
             font-weight: 600;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
             color: #fff;
             text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
             pointer-events: auto;
         }
 
-        /* 描述文字 —— 恢复最初样式 */
+        /* 描述文字 */
         #todayCard .today-overlay .today-desc {
             font-size: 0.95rem;
             line-height: 1.8;
@@ -180,7 +179,7 @@
             max-height: 40vh;
             overflow-y: auto;
             scrollbar-width: none;
-            max-width: 800px;
+            max-width: 85%; /* 限制宽度，防止在大屏上过长 */
         }
 
         #todayCard .today-overlay .today-desc::-webkit-scrollbar {
@@ -205,7 +204,7 @@
             flex-wrap: wrap;
             align-items: center;
             gap: 10px;
-            margin-top: 12px;
+            margin-top: 16px;
             pointer-events: auto;
             position: relative;
         }
@@ -281,13 +280,10 @@
             }
             #todayCard .today-overlay {
                 padding: 20px 20px 24px;
-                min-height: 42%;
-                bottom: 0;
             }
             #todayCard .today-overlay .today-title {
                 font-size: 1.2rem;
                 margin-bottom: 8px;
-                max-width: 95%;
             }
             #todayCard .today-overlay .today-desc {
                 font-size: 0.82rem;
@@ -304,7 +300,7 @@
                 width: 12px;
                 height: 12px;
             }
-            /* 顶部深色渐变，让导航栏和移动按钮可读 */
+            /* 顶部深色渐变 */
             #todayCard::before {
                 content: "";
                 position: absolute;
@@ -488,7 +484,6 @@
 
                     const detailUrl = getDetailUrl(item.title || item.subtitle || '', item.date);
                     
-                    // PC端按钮组
                     const htmlPcActions = `
                         <div class="today-actions-pc">
                             <a href="${get4kUrl(item.bing_url || item.url || '')}" class="btn btn-primary" target="_blank">${ICONS.download} UHD/4K</a>
@@ -498,7 +493,6 @@
                         </div>
                     `;
                     
-                    // 移动端悬浮按钮
                     const mobileBtnHtml = `
                         <a href="${get4kUrl(item.bing_url || item.url || '')}" class="btn btn-primary" target="_blank">${ICONS.download} UHD/4K</a>
                         <a href="${get1080pUrl(item.bing_url || item.url || '')}" class="btn btn-secondary" target="_blank">${ICONS.download} 1080P</a>
@@ -506,6 +500,7 @@
                         <a href="/archive.html" class="btn btn-secondary">${ICONS.archive} 壁纸归档</a>
                     `;
 
+                    // 修复：确保 today-desc 和 today-actions-pc 是兄弟节点，独立闭合
                     container.innerHTML = `
                         <img src="${imgUrl}" alt="${title}" loading="lazy" onerror="this.style.display='none'" />
                         <div class="today-gradient"></div>
