@@ -158,20 +158,20 @@
             min-height: 55%;
         }
 
-        /* 标题 —— 左下角 */
+        /* 标题 —— 字体变小 */
         #todayCard .today-overlay .today-title {
-            font-size: 2rem;
-            font-weight: 350;
+            font-size: 1.5rem;
+            font-weight: 400;
             letter-spacing: -0.01em;
-            line-height: 1.25;
+            line-height: 1.3;
             color: #fff;
             text-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             pointer-events: auto;
             max-width: 80%;
         }
 
-        /* 描述文字 —— 左下角，限制宽度，不占满全宽 */
+        /* 描述文字 —— 控制宽度 */
         #todayCard .today-overlay .today-desc {
             font-size: 0.95rem;
             line-height: 1.8;
@@ -199,7 +199,7 @@
             line-height: 1.8;
         }
 
-        /* ===== 按钮组 PC端：放在底部（位置不变，仍在左下方） ===== */
+        /* ===== 按钮组 PC端：放在底部（位置不变） ===== */
         #todayCard .today-overlay .today-actions-pc {
             display: flex;
             flex-wrap: wrap;
@@ -210,7 +210,7 @@
             position: relative;
         }
 
-        /* 移动端悬浮按钮（右上角，独立） */
+        /* 移动端悬浮按钮 */
         #todayCard .today-actions-mobile {
             display: none;
             position: absolute;
@@ -265,35 +265,6 @@
             border-color: rgba(210, 180, 140, 0.5);
         }
 
-        /* 滚动提示 */
-        .global-scroll-hint {
-            position: absolute;
-            left: 50%;
-            bottom: 24px;
-            transform: translateX(-50%);
-            z-index: 6;
-            font-size: 0.7rem;
-            letter-spacing: 2.5px;
-            font-weight: 300;
-            text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.3);
-            pointer-events: none;
-            white-space: nowrap;
-        }
-        .global-scroll-hint span {
-            display: inline-block;
-            animation: gentleFloat 2.8s infinite ease-in-out;
-        }
-        @keyframes gentleFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-6px); }
-        }
-
-        /* 隐藏PC按钮组内部旧的滚动提示（避免重复） */
-        .today-actions-pc .today-scroll-hint {
-            display: none !important;
-        }
-
         /* ===== 加载状态 ===== */
         .loading {
             color: #888;
@@ -303,7 +274,6 @@
 
         /* ===== 响应式 · 移动端 ===== */
         @media (max-width: 640px) {
-            /* 今日页面移动端 */
             #todayCard .today-overlay .today-actions-pc {
                 display: none;
             }
@@ -319,7 +289,7 @@
                 bottom: 0;
             }
             #todayCard .today-overlay .today-title {
-                font-size: 1.4rem;
+                font-size: 1.2rem;
                 margin-bottom: 8px;
                 max-width: 95%;
             }
@@ -360,17 +330,11 @@
                 padding: 5px 12px;
                 font-size: 0.72rem;
             }
-
-            .global-scroll-hint {
-                bottom: 14px;
-                font-size: 0.6rem;
-                letter-spacing: 1.8px;
-            }
         }
 
         @media (max-width: 480px) {
             #todayCard .today-overlay .today-title {
-                font-size: 1.2rem;
+                font-size: 1.1rem;
             }
             #todayCard .today-overlay .today-desc {
                 font-size: 0.75rem;
@@ -386,9 +350,9 @@
 </head>
 <body>
 
-    <!-- ===== 顶部导航栏（图片1样式） ===== -->
+    <!-- ===== 顶部导航栏 ===== -->
     <nav class="top-nav">
-        <a href="#" class="nav-item active">今日</a>
+        <a href="#" class="nav-item active">首页</a>
         <a href="/carousel.html" class="nav-item">精彩轮播</a>
         <a href="/archive.html" class="nav-item">历史归档</a>
         <a href="/api.html" class="nav-item">API</a>
@@ -422,7 +386,7 @@
                 return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent) || window.innerWidth <= 640;
             }
 
-            // ===== 工具函数【区分横竖版壁纸地址】 =====
+            // ===== 工具函数 =====
             function get1080pUrl(url) {
                 if (!url) return '';
                 let result = url;
@@ -489,7 +453,7 @@
                             return resp.json();
                         })
                         .catch(err => {
-                            wallpaperDataPromise = null;   // 失败后允许重试
+                            wallpaperDataPromise = null;
                             throw err;
                         });
                 }
@@ -506,7 +470,6 @@
                         throw new Error('数据为空或格式无效');
                     }
 
-                    // 取当天数据；若找不到，则退回取日期最新的一条
                     const todayStr = getTodayStr();
                     let item = data.find(d => d.date === todayStr);
 
@@ -538,7 +501,7 @@
 
                     const detailUrl = getDetailUrl(item.title || item.subtitle || '', item.date);
                     
-                    // PC端按钮组（位于左下角）
+                    // PC端按钮组
                     const htmlPcActions = `
                         <div class="today-actions-pc">
                             <a href="${get4kUrl(item.bing_url || item.url || '')}" class="btn btn-primary" target="_blank">${ICONS.download} UHD/4K</a>
@@ -564,9 +527,6 @@
                             <div class="today-desc">${descHtml || '暂无详细介绍'}</div>
                             ${htmlPcActions}
                         </div>
-                        <div class="global-scroll-hint">
-                            <span>滚动 · 查看历史</span>
-                        </div>
                         <div class="today-actions-mobile">${mobileBtnHtml}</div>
                     `;
                     console.log('✅ 今日壁纸加载成功:', item.date);
@@ -578,7 +538,7 @@
 
             // ===== 启动 =====
             loadToday();
-            console.log('✨ 今日壁纸页面已加载，轮播已分离');
+            console.log('✨ 首页已加载');
         })();
     </script>
 </body>
