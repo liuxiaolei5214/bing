@@ -100,6 +100,10 @@
             background: #14191f;
         }
 
+        /* 
+         * ===== 层级清晰 =====
+         * 图片最底层，然后统一遮罩，最后是文字/按钮/缩略图 
+         */
         .movie-slide {
             width: 100%;
             height: 100%;
@@ -111,32 +115,33 @@
             position: relative;
         }
 
-        /* ===== 底部整体渐变：自然过渡，减少突兀感 ===== */
-        .movie-bottom-overlay {
+        /* ===== 唯一的全局渐变遮罩：覆盖整个底部 ===== */
+        .movie-global-overlay {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 45%;
-            z-index: 12;
+            height: 50%;
+            z-index: 10; /* 在图片之上，内容之下 */
             background: linear-gradient(to top, 
-                rgba(0, 0, 0, 0.75) 0%,   
-                rgba(0, 0, 0, 0.35) 50%,
+                rgba(0, 0, 0, 0.9) 0%,   
+                rgba(0, 0, 0, 0.5) 40%,
                 rgba(0, 0, 0, 0.0) 100%
             );
-            pointer-events: none;
+            pointer-events: none; /* 让鼠标穿透，不影响底部区域点击 */
         }
 
-        /* 底部内容容器 */
+        /* 底部内容容器：在遮罩之上 */
         .movie-bottom-container {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            z-index: 15;
+            z-index: 20;
             display: flex;
             flex-direction: column;
             width: 100%;
+            pointer-events: none; /* 穿透，防止阻挡鼠标穿透 */
         }
 
         /* 标题行 + 按钮 */
@@ -145,8 +150,8 @@
             justify-content: space-between;
             align-items: flex-end;
             padding: 0 40px 16px;
-            pointer-events: none;
             gap: 20px;
+            pointer-events: none;
         }
 
         .movie-title-bar {
@@ -175,7 +180,7 @@
             display: none;
         }
 
-        /* 按钮组：改为纯透明，只保留边框和文字，去除黑色色块感 */
+        /* 按钮组 */
         .movie-actions {
             display: flex;
             flex-wrap: wrap;
@@ -195,8 +200,8 @@
             letter-spacing: 0.8px;
             text-decoration: none;
             color: #f0ede8;
-            background: transparent; /* 原本有半透明底，现在去掉 */
-            border: 1px solid rgba(255, 255, 255, 0.25); /* 边框提亮一点保证可见 */
+            background: transparent; 
+            border: 1px solid rgba(255, 255, 255, 0.3); 
             transition: all 0.25s;
             white-space: nowrap;
         }
@@ -209,8 +214,7 @@
         }
 
         .btn-primary {
-            background: transparent;
-            border-color: rgba(240, 230, 200, 0.35);
+            border-color: rgba(240, 230, 200, 0.5);
             color: #f0e6d8;
         }
         .btn-primary:hover, .btn-secondary:hover {
@@ -218,21 +222,18 @@
             transform: scale(1.02);
         }
 
-        /* ===== 底部缩略图：弱化背景色，与整体渐变融合 ===== */
+        /* ===== 底部缩略图：无背景，直接悬浮于全局渐变之上 ===== */
         .movie-thumbnails {
             display: flex;
             align-items: center;
             width: 100%;
             overflow-x: auto;
             scrollbar-width: none;
-            /* 极其微弱的底色，或者干脆不需要 */
-            background: rgba(0, 0, 0, 0.1); 
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            /* 取消顶部分割线 */
-            border-top: none; 
-            padding: 10px 40px 16px; /* 底部增加一点 padding */
+            background: transparent; /* 彻底移除遮罩 */
+            border-top: none;        /* 彻底移除分割线 */
+            padding: 10px 40px 16px; 
             gap: 8px;
+            pointer-events: auto;    /* 恢复点击 */
         }
         .movie-thumbnails::-webkit-scrollbar {
             display: none;
@@ -248,15 +249,15 @@
             cursor: pointer;
             border: 2px solid transparent;
             transition: all 0.25s;
-            opacity: 0.65; 
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4); /* 阴影加深，确保不依赖底色也能立体 */
+            opacity: 0.7; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
         }
 
         .movie-thumbnails .thumb-item.active {
             border-color: #e8e0d0;
             opacity: 1;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(200, 180, 140, 0.3);
+            box-shadow: 0 4px 12px rgba(200, 180, 140, 0.4);
         }
 
         .movie-thumbnails .thumb-item:hover {
@@ -280,7 +281,7 @@
             align-items: center;
             justify-content: center;
             transition: all 0.25s;
-            z-index: 20;
+            z-index: 30; /* 层级最高，在一切之上 */
             opacity: 0;
             visibility: hidden;
             padding: 0;
@@ -319,6 +320,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            z-index: 30;
         }
 
         /* ===== 响应式 · 移动端 ===== */
@@ -375,8 +377,8 @@
             .movie-btn.prev { left: 0.4rem; }
             .movie-btn.next { right: 0.4rem; }
             
-            .movie-bottom-overlay {
-                height: 50%;
+            .movie-global-overlay {
+                height: 55%;
             }
         }
     </style>
@@ -398,10 +400,12 @@
             <div class="movie-slide active" id="movieSlide" style="background-image: url('');">
                 <div class="loading" id="movieLoading">加载中...</div>
                 
-                <div class="movie-bottom-overlay"></div>
+                <!-- 唯一的全局渐变遮罩 -->
+                <div class="movie-global-overlay"></div>
                 
+                <!-- 内容区（层级高于遮罩） -->
                 <div class="movie-bottom-container">
-                    <!-- 标题行 + 按钮（在缩略图上方） -->
+                    <!-- 标题行 + 按钮 -->
                     <div class="movie-bottom-bar">
                         <div class="movie-title-bar">
                             <div class="movie-info">
@@ -529,14 +533,12 @@
                         throw new Error('数据为空或格式无效');
                     }
 
-                    // 按日期降序排序
                     data.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
                     allData = data;
                     currentIndex = 0;
                     loadingEl.style.display = 'none';
 
-                    // 生成矩形缩略图
                     thumbnails.innerHTML = '';
                     allData.forEach((item, idx) => {
                         const thumb = document.createElement('div');
@@ -583,16 +585,13 @@
                 detailBtn.innerHTML = `${ICONS.book} 光影回顾`;
                 detailBtn.href = detailUrl;
 
-                // 更新缩略图激活状态
                 document.querySelectorAll('.thumb-item').forEach((el, i) => {
                     el.classList.toggle('active', i === index);
-                    // 将激活的缩略图滚动到可视区域
                     if (i === index) {
                         el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
                     }
                 });
 
-                // 边界按钮状态
                 prevBtn.style.visibility = index === 0 ? 'hidden' : 'visible';
                 nextBtn.style.visibility = index >= allData.length - 1 ? 'hidden' : 'visible';
             }
