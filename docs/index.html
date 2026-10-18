@@ -343,9 +343,9 @@
 
     <!-- ===== 顶部悬浮胶囊毛玻璃导航 ===== -->
     <nav class="top-nav">
-        <a href="#" class="nav-item active">今日</a>
-        <a href="/archive.html" class="nav-item">历史</a>
-        <a href="/archive.html" class="nav-item">归档</a>
+        <a href="#" class="nav-item active">首页</a>
+        <a href="/carousel.html" class="nav-item">精彩轮播</a>
+        <a href="/archive.html" class="nav-item">历史归档</a>
         <a href="/api.html" class="nav-item">API</a>
         <a href="/about.html" class="nav-item">关于</a>
     </nav>
@@ -368,7 +368,6 @@
             const ICONS = {
                 download: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
                 book: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
-                archive: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>`,
             };
 
             function isMobileDevice() {
@@ -488,7 +487,6 @@
                             <a href="${get4kUrl(item.bing_url || item.url || '')}" class="btn btn-primary" target="_blank">${ICONS.download} UHD/4K</a>
                             <a href="${get1080pUrl(item.bing_url || item.url || '')}" class="btn btn-secondary" target="_blank">${ICONS.download} 1080P</a>
                             <a href="${detailUrl}" class="btn btn-secondary" target="_blank">${ICONS.book} 光影回顾</a>
-                            <a href="/archive.html" class="btn btn-secondary">${ICONS.archive} 壁纸归档</a>
                         </div>
                     `;
                     
@@ -496,7 +494,6 @@
                         <a href="${get4kUrl(item.bing_url || item.url || '')}" class="btn btn-primary" target="_blank">${ICONS.download} UHD/4K</a>
                         <a href="${get1080pUrl(item.bing_url || item.url || '')}" class="btn btn-secondary" target="_blank">${ICONS.download} 1080P</a>
                         <a href="${detailUrl}" class="btn btn-secondary" target="_blank">${ICONS.book} 光影回顾</a>
-                        <a href="/archive.html" class="btn btn-secondary">${ICONS.archive} 壁纸归档</a>
                     `;
 
                     // 修复：确保 today-desc 和 today-actions-pc 是兄弟节点，独立闭合
