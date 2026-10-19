@@ -7,16 +7,20 @@
     <link rel="icon" href="/favicon.avif">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             color: #e0e0e0;
             min-height: 100vh;
-            padding: 80px 20px 20px; /* 顶部留出导航栏空间 */
+            padding: 20px;
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
             background-repeat: no-repeat;
+            position: relative;
         }
+        
+        /* 背景遮罩 */
         body::before {
             content: '';
             position: fixed;
@@ -27,17 +31,13 @@
             background: rgba(0,0,0,0.3);
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
-            z-index: 0;
+            z-index: -1;
             pointer-events: none;
-        }
-        body > * {
-            position: relative;
-            z-index: 1;
         }
 
         /* ===== 顶部悬浮胶囊毛玻璃导航 ===== */
         .top-nav {
-            position: fixed;
+            position: absolute; /* 改为绝对定位，随页面滚动 */
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
@@ -80,28 +80,26 @@
             font-weight: 500;
         }
 
-        /* ===== 筛选栏（缩短并靠右） ===== */
+        /* ===== 紧凑型的搜索悬浮栏 ===== */
         .top-bar {
             max-width: 1400px;
-            margin: 0 auto 30px;
+            margin: 80px auto 24px; /* 顶部留出导航栏高度 */
             display: flex;
-            justify-content: flex-end; /* 靠右对齐 */
-            align-items: center;
-            padding: 12px 20px;
-            gap: 20px;
-            background: rgba(22, 22, 22, 0.45);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            justify-content: center; /* 居中显示 */
         }
         
-        .filters {
-            display: flex;
-            flex-wrap: nowrap;
-            gap: 16px;
+        .filter-capsule {
+            display: inline-flex;
             align-items: center;
-            flex-shrink: 0;
+            gap: 16px;
+            padding: 8px 16px 8px 24px;
+            background: rgba(22, 22, 22, 0.55);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            flex-wrap: wrap;
         }
         
         .filter-item {
@@ -109,24 +107,26 @@
             align-items: center;
             gap: 8px;
         }
+        
         .filter-label {
-            font-size: 15px;
-            color: #ffffff;
-            font-weight: 500;
+            font-size: 14px;
+            color: #ccc;
             white-space: nowrap;
         }
+        
         .filter-input {
-            width: 140px;
+            width: 130px;
             height: 32px;
             padding: 0 12px;
             border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 8px;
+            border-radius: 20px;
             font-size: 14px;
             outline: none;
             cursor: pointer;
             background: rgba(0, 0, 0, 0.3); 
-            color: #ffffff;
+            color: #fff;
             transition: all 0.3s;
+            text-align: center;
         }
         .filter-input:hover { border-color: rgba(255, 255, 255, 0.3); }
         .filter-input:focus { border-color: #4d96ff; box-shadow: 0 0 0 3px rgba(77,150,255,0.2); }
@@ -135,7 +135,7 @@
         .btn-filter-reset {
             padding: 6px 16px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
+            border-radius: 20px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -146,36 +146,32 @@
         }
         .btn-filter-reset:hover {
             background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-1px);
         }
         
         .stats {
-            color: #ffffff;
-            font-size: 0.9rem;
+            color: #ccc;
+            font-size: 0.85rem;
             white-space: nowrap;
-            padding-left: 10px;
+            padding-left: 8px;
+            border-left: 1px solid rgba(255, 255, 255, 0.15);
         }
         .stats span {
             color: #4d96ff;
             font-weight: 600;
+            font-size: 1rem;
+            margin: 0 2px;
         }
 
         /* ===== 月份选择弹窗 ===== */
         .date-mask {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             background: rgba(0, 0, 0, 0.4);
             display: none;
             z-index: 999;
             backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
         }
-        .date-mask.show {
-            display: block;
-        }
+        .date-mask.show { display: block; }
         
         .date-popup {
             position: absolute;
@@ -189,14 +185,8 @@
         }
         
         @keyframes popupFade {
-            from {
-                opacity: 0;
-                transform: translateY(-8px) scale(0.97);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
+            from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
         
         .popup-header {
@@ -204,17 +194,13 @@
             justify-content: center;
             align-items: center;
             gap: 50px;
-            padding: 10px 16px 10px 16px;
+            padding: 10px 16px;
             min-height: 42px;
             border-bottom: 1px solid #f0f0f0;
             background: #fafafa;
         }
         
-        .popup-header-title {
-            font-size: 15px;
-            font-weight: 600;
-            color: #333;
-        }
+        .popup-header-title { font-size: 15px; font-weight: 600; color: #333; }
         
         .popup-year-nav {
             display: flex;
@@ -225,8 +211,7 @@
             padding: 0;
         }
         
-        .popup-year-btn,
-        .popup-year-page-btn {
+        .popup-year-btn, .popup-year-page-btn {
             background: transparent;
             border: none;
             color: #666;
@@ -237,10 +222,7 @@
             line-height: 1;
         }
         
-        .popup-year-btn:hover,
-        .popup-year-page-btn:hover {
-            color: #4d96ff;
-        }
+        .popup-year-btn:hover, .popup-year-page-btn:hover { color: #4d96ff; }
         
         .popup-year-text {
             font-size: 17px;
@@ -253,13 +235,9 @@
             border-radius: 6px;
             transition: background 0.2s;
         }
+        .popup-year-text:hover { background: #f0f5ff; }
         
-        .popup-year-text:hover {
-            background: #f0f5ff;
-        }
-        
-        .month-grid,
-        .year-grid-popup {
+        .month-grid, .year-grid-popup {
             padding: 4px 10px 8px 10px;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -267,8 +245,7 @@
             background: #ffffff;
         }
         
-        .month-cell,
-        .year-cell {
+        .month-cell, .year-cell {
             text-align: center;
             padding: 16px 0;
             font-size: 14px;
@@ -277,36 +254,14 @@
             cursor: pointer;
             transition: all 0.2s;
             font-weight: 500;
-            background: transparent;
         }
         
-        .month-cell:hover,
-        .year-cell:hover {
-            background: #f0f5ff;
-            color: #4d96ff;
-        }
+        .month-cell:hover, .year-cell:hover { background: #f0f5ff; color: #4d96ff; }
+        .month-cell.active, .year-cell.active { background: #4d96ff; color: #fff; }
         
-        .month-cell.active,
-        .year-cell.active {
-            background: #4d96ff;
-            color: #fff;
-        }
-        
-        .year-cell.disabled {
-            opacity: 0.35;
-            cursor: default;
-            color: #999;
-        }
-        .year-cell.disabled:hover {
-            background: transparent;
-            color: #999;
-        }
-        
-        .year-cell.empty {
-            cursor: default;
-            opacity: 0;
-            pointer-events: none;
-        }
+        .year-cell.disabled { opacity: 0.35; cursor: default; color: #999; }
+        .year-cell.disabled:hover { background: transparent; color: #999; }
+        .year-cell.empty { cursor: default; opacity: 0; pointer-events: none; }
 
         /* ===== 瀑布流卡片网格 ===== */
         .grid {
@@ -319,7 +274,6 @@
         .card {
             background: rgba(22, 22, 22, 0.5);
             backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
             border-radius: 12px;
             overflow: hidden;
             transition: transform 0.25s ease, box-shadow 0.25s ease;
@@ -348,17 +302,14 @@
             opacity: 0;
             transition: opacity 0.4s ease;
         }
-        .card .img-wrapper img.loaded {
-            opacity: 1;
-        }
+        .card .img-wrapper img.loaded { opacity: 1; }
+        
         .card .img-wrapper .placeholder {
             position: absolute;
             inset: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #555;
-            font-size: 14px;
             background: #1a1a1a;
         }
         .card .img-wrapper .placeholder .spinner {
@@ -369,19 +320,10 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
-        .card .img-wrapper .placeholder .error-text {
-            color: #e74c3c;
-            font-size: 13px;
-        }
+        .card .img-wrapper .placeholder .error-text { color: #e74c3c; font-size: 13px; }
 
-        .card .info {
-            padding: 12px 16px 16px;
-        }
-        .card .info .date {
-            font-size: 0.8rem;
-            color: #aaa;
-            font-weight: 500;
-        }
+        .card .info { padding: 12px 16px 16px; }
+        .card .info .date { font-size: 0.8rem; color: #aaa; font-weight: 500; }
         .card .info .title {
             font-size: 0.9rem;
             color: #ffffff;
@@ -391,12 +333,8 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .card .info .btn-group {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-            flex-wrap: wrap;
-        }
+        .card .info .btn-group { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+        
         .card .info .btn-group .download-btn {
             display: inline-flex;
             align-items: center;
@@ -411,30 +349,14 @@
             border: none;
             cursor: pointer;
         }
-        .card .info .btn-group .download-btn svg {
-            flex-shrink: 0;
-        }
-        .card .info .btn-group .btn-4k {
-            background: rgba(77, 150, 255, 0.8);
-        }
-        .card .info .btn-group .btn-4k:hover {
-            background: #4d96ff;
-        }
-        .card .info .btn-group .btn-1080p {
-            background: rgba(108, 117, 125, 0.8);
-        }
-        .card .info .btn-group .btn-1080p:hover {
-            background: #6c757d;
-        }
-        .card .info .btn-group .btn-download {
-            background: rgba(108, 117, 125, 0.8);
-        }
-        .card .info .btn-group .btn-download:hover {
-            background: #6c757d;
-        }
+        .card .info .btn-group .btn-4k { background: rgba(77, 150, 255, 0.8); }
+        .card .info .btn-group .btn-4k:hover { background: #4d96ff; }
+        .card .info .btn-group .btn-1080p { background: rgba(108, 117, 125, 0.8); }
+        .card .info .btn-group .btn-1080p:hover { background: #6c757d; }
+        .card .info .btn-group .btn-download { background: rgba(108, 117, 125, 0.8); }
+        .card .info .btn-group .btn-download:hover { background: #6c757d; }
 
-        .loading,
-        .empty {
+        .loading, .empty {
             text-align: center;
             padding: 60px 0;
             color: #aaa;
@@ -453,9 +375,7 @@
             animation: spin 0.8s linear infinite;
             vertical-align: middle;
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         /* ===== 加载进度提示 ===== */
         #loadProgress {
@@ -465,7 +385,6 @@
             transform: translateX(-50%);
             background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
             color: #fff;
             padding: 8px 20px;
             border-radius: 20px;
@@ -475,89 +394,56 @@
             transition: opacity 0.3s ease;
             border: 1px solid rgba(255,255,255,0.1);
         }
-        #loadProgress.hidden {
-            opacity: 0;
-        }
+        #loadProgress.hidden { opacity: 0; }
 
-        /* ===== 模态框 - 全屏 ===== */
+        /* ===== 模态框 ===== */
         .modal-overlay {
             position: fixed;
             inset: 0;
             background: rgba(0, 0, 0, 0.92);
             backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
             z-index: 9999;
             display: none;
             justify-content: center;
             align-items: center;
-            padding: 0;
             opacity: 0;
             transition: opacity 0.4s ease;
         }
-        .modal-overlay.open {
-            display: flex;
-            opacity: 1;
-        }
+        .modal-overlay.open { display: flex; opacity: 1; }
+        
         .modal-box {
             background: #0d0d0d;
             width: 100vw;
             height: 100vh;
-            max-width: 100vw;
-            max-height: 100vh;
             overflow: hidden;
-            box-shadow: none;
-            padding: 0;
             position: relative;
             transform: scale(0.98);
             transition: transform 0.4s ease;
-            border-radius: 0;
         }
-        .modal-overlay.open .modal-box {
-            transform: scale(1);
-        }
-        .modal-image {
-            width: 100%;
-            height: 100%;
-            background: #0b0b0b;
-            overflow: hidden;
-            position: relative;
-        }
-        .modal-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-            background: #000;
-        }
+        .modal-overlay.open .modal-box { transform: scale(1); }
+        
+        .modal-image { width: 100%; height: 100%; background: #0b0b0b; position: relative; }
+        .modal-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        
         .modal-image::after {
             content: '';
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            bottom: 0; left: 0; right: 0;
             height: 50%;
-            background: linear-gradient(to top, 
-                rgba(0, 0, 0, 0.92) 0%, 
-                rgba(0, 0, 0, 0.6) 30%,
-                rgba(0, 0, 0, 0.2) 60%,
-                transparent 100%
-            );
+            background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.6) 30%, rgba(0,0,0,0.2) 60%, transparent 100%);
             pointer-events: none;
             z-index: 1;
         }
+        
         .modal-content {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            bottom: 0; left: 0; right: 0;
             padding: 30px 48px 40px;
             z-index: 2;
             max-height: 50%;
             pointer-events: none;
         }
-        .modal-content > * {
-            pointer-events: auto;
-        }
+        .modal-content > * { pointer-events: auto; }
         
         .modal-scroll-desc {
             max-height: 50vh;
@@ -568,7 +454,6 @@
             padding-right: 8px;
         }
         .modal-scroll-desc::-webkit-scrollbar { width: 4px; }
-        .modal-scroll-desc::-webkit-scrollbar-track { background: transparent; }
         .modal-scroll-desc::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
         
         .modal-title {
@@ -577,36 +462,24 @@
             margin-bottom: 2px;
             color: #fff;
             text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
-            letter-spacing: 1px;
         }
         .modal-subtitle { display: none !important; }
         .modal-desc {
             font-size: 0.95rem;
             line-height: 1.8;
-            opacity: 0.92;
-            white-space: normal;
-            word-break: break-word;
             color: #f0f0f0;
             text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
         }
-        .modal-desc p {
-            text-indent: 2em;
-            margin: 0;
-            padding: 0;
-            line-height: 1.9;
-        }
+        .modal-desc p { text-indent: 2em; margin: 0; padding: 0; line-height: 1.9; }
         
         .modal-close {
             position: fixed;
-            top: 24px;
-            right: 28px;
+            top: 24px; right: 28px;
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.15);
             color: #fff;
-            width: 52px;
-            height: 52px;
+            width: 52px; height: 52px;
             border-radius: 50%;
             font-size: 2rem;
             cursor: pointer;
@@ -615,14 +488,8 @@
             align-items: center;
             justify-content: center;
             z-index: 100;
-            line-height: 1;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         }
-        .modal-close:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.06) rotate(90deg);
-            border-color: rgba(255, 255, 255, 0.3);
-        }
+        .modal-close:hover { background: rgba(255, 255, 255, 0.2); transform: scale(1.06) rotate(90deg); }
         
         footer {
             max-width: 1400px;
@@ -636,120 +503,42 @@
         
         /* ===== 移动端适配 ===== */
         @media (max-width: 768px) {
-            body { padding-top: 70px; }
-            
-            .top-nav {
-                top: 12px;
-                padding: 4px 8px;
-                gap: 2px;
-            }
-            .top-nav .nav-item {
-                padding: 5px 12px;
-                font-size: 0.72rem;
-            }
-
-            .top-bar {
+            .top-bar { margin-top: 70px; }
+            .filter-capsule {
                 flex-direction: column;
-                align-items: stretch;
                 padding: 12px;
+                border-radius: 16px;
+                width: 100%;
                 gap: 12px;
             }
-            .filters {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 12px;
-            }
-            .filter-item {
-                display: flex;
-                flex-direction: row;
-                align-items: center;
-                width: 100%;
-                gap: 10px;
-                justify-content: space-between;
-            }
-            .filter-label {
-                font-size: 14px;
-            }
-            .filter-input {
-                flex: 1;
-                width: auto;
-                min-width: 0;
-            }
-            .btn-filter-reset {
-                width: 100%;
-                margin-top: 4px;
-            }
-            .stats {
-                text-align: center;
-            }
-
-            .grid {
-                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-                gap: 12px;
-            }
-            /* 移动端模态框 */
-            .modal-overlay { padding: 0 !important; background: rgba(0, 0, 0, 0.95); }
-            .modal-box {
-                max-width: 100%;
-                max-height: 100vh !important;
-                height: 100vh !important;
-                margin: 0 !important;
-                border-radius: 0 !important;
-                display: flex;
-                flex-direction: column;
-            }
-            .modal-image {
-                flex: 1;
-                aspect-ratio: unset !important;
-                width: 100%;
-                height: 100%;
-            }
-            .modal-content {
-                padding: 16px 20px 20px;
-                max-height: 50%;
-            }
-            .modal-scroll-desc {
-                max-height: 30vh;
-            }
-            .modal-title {
-                font-size: 1.3rem;
-            }
-            .modal-desc {
-                font-size: 0.85rem;
-                line-height: 1.7;
-            }
-            .modal-image::after {
-                height: 55%;
-            }
-            .modal-close {
-                top: 16px;
-                right: 16px;
-                width: 44px;
-                height: 44px;
-                font-size: 1.6rem;
-            }
-            .date-popup {
-                width: 92%;
-                left: 4% !important;
-            }
+            .filter-item { width: 100%; justify-content: space-between; }
+            .filter-input { flex: 1; }
+            .btn-filter-reset { width: 100%; text-align: center; }
+            .stats { border-left: none; padding-left: 0; text-align: center; width: 100%; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px; }
+            
+            .top-nav { top: 12px; padding: 4px 8px; gap: 2px; }
+            .top-nav .nav-item { padding: 5px 12px; font-size: 0.72rem; }
+            
+            .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+            
+            .modal-box { display: flex; flex-direction: column; }
+            .modal-image { flex: 1; height: auto; }
+            .modal-content { padding: 16px 20px 20px; }
+            .modal-title { font-size: 1.3rem; }
+            .modal-close { top: 16px; right: 16px; width: 44px; height: 44px; font-size: 1.6rem; }
+            .date-popup { width: 92%; left: 4% !important; }
         }
         @media (max-width: 480px) {
-            body { padding: 60px 10px 10px; }
             .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
             .card .info { padding: 8px 12px 12px; }
-            .card .info .date { font-size: 0.7rem; }
             .card .info .title { font-size: 0.8rem; }
-            .card .info .btn-group { gap: 6px; margin-top: 8px; }
             .card .info .btn-group .download-btn { font-size: 0.65rem; padding: 4px 8px; }
-            
-            .modal-content { padding: 12px 14px 16px; max-height: 48%; }
-            .modal-title { font-size: 1.1rem; }
             .modal-close { top: 12px; right: 12px; width: 38px; height: 38px; font-size: 1.4rem; }
         }
     </style>
 </head>
 <body>
-    <!-- ===== 顶部悬浮胶囊毛玻璃导航 ===== -->
+    <!-- 顶部悬浮导航（绝对定位，随页面滚动） -->
     <nav class="top-nav">
         <a href="/" class="nav-item">首页</a>
         <a href="/carousel.html" class="nav-item">精彩轮播</a>
@@ -758,14 +547,14 @@
         <a href="/about.html" class="nav-item">关于</a>
     </nav>
 
-    <!-- 缩短并靠右的搜索栏容器 -->
+    <!-- 紧凑型悬浮搜索栏 -->
     <div class="top-bar">
-        <div class="filters">
+        <div class="filter-capsule">
             <div class="filter-item">
-                <span class="filter-label">选择年月：</span>
+                <span class="filter-label">选择年月</span>
                 <input class="filter-input" id="monthInput" placeholder="请选择" readonly>
-                <button class="btn-filter-reset" onclick="resetAllFilters()">↺ 重置</button>
             </div>
+            <button class="btn-filter-reset" onclick="resetAllFilters()">↺ 重置</button>
             <div class="stats">共 <span id="totalCount">0</span> 张壁纸</div>
         </div>
     </div>
@@ -773,11 +562,12 @@
     <div class="grid" id="grid">
         <div class="loading">加载壁纸数据中...</div>
     </div>
+    
     <footer>
         <p>数据来源：Bing 每日壁纸 · 永久归档 · 仅供个人欣赏</p>
     </footer>
 
-    <!-- ===== 全屏模态框 ===== -->
+    <!-- 全屏模态框 -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-box">
             <button class="modal-close" id="modalClose">✕</button>
@@ -798,7 +588,6 @@
         <div class="date-popup" id="popup"></div>
     </div>
 
-    <!-- ===== 加载进度提示 ===== -->
     <div id="loadProgress" class="hidden">加载图片 0/0</div>
 
     <script>
@@ -891,7 +680,7 @@
         }
 
         // ============================================================
-        // 0. 图片加载管理器
+        // 图片加载管理器
         // ============================================================
         var imageLoader = {
             imgElements: [],
@@ -1056,15 +845,14 @@
         };
 
         // ============================================================
-        // 1. URL 处理工具
+        // URL 处理工具
         // ============================================================
         function isJuemeiUrl(url) { return url ? url.includes('juemeibizhi.com') : false; }
         function isBingCdnUrl(url) { return url ? (url.includes('cn.bing.com') || url.includes('bing.com')) : false; }
         function isCdnBimgUrl(url) { return url ? url.includes('cdn.bimg.cc') : false; }
 
         function getImageUrl(item) {
-            var bingUrl = item.bing_url || '';
-            return bingUrl;
+            return item.bing_url || '';
         }
 
         function get4kUrl(item) {
@@ -1108,7 +896,7 @@
         }
 
         // ============================================================
-        // 2. 月份控件
+        // 月份控件
         // ============================================================
         (function () {
             var today = new Date();
@@ -1125,9 +913,7 @@
             var monthInput = document.getElementById('monthInput');
             var monthNames = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
 
-            function closePopup() {
-                mask.classList.remove('show');
-            }
+            function closePopup() { mask.classList.remove('show'); }
 
             function openPopup() {
                 var rect = monthInput.getBoundingClientRect();
@@ -1136,8 +922,8 @@
                 var startYear = 2010;
                 var targetIdx = currentYear - startYear;
                 state.yearPage = Math.floor(targetIdx / 12);
-                popup.style.left = Math.max(0, rect.left) + 'px';
-                popup.style.top = (rect.bottom + 6 + window.scrollY) + 'px';
+                popup.style.left = Math.max(0, rect.left - 100) + 'px'; // 稍微居中一点
+                popup.style.top = (rect.bottom + 10 + window.scrollY) + 'px';
                 renderPopup();
             }
 
@@ -1285,7 +1071,7 @@
         })();
 
         // ============================================================
-        // 3. 工具函数
+        // 工具函数
         // ============================================================
         function getMonthFromDate(dateStr) {
             if (dateStr && dateStr.length >= 7) return dateStr.substring(5, 7);
@@ -1304,7 +1090,7 @@
         var DOWNLOAD_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
 
         // ============================================================
-        // 4. 数据加载
+        // 数据加载
         // ============================================================
         var loadedData = {};
         var allAvailableYears = [];
@@ -1342,7 +1128,7 @@
         }
 
         // ============================================================
-        // 5. 筛选与渲染
+        // 筛选与渲染
         // ============================================================
         function filterImagesByMonth(images, month) {
             if (!images || images.length === 0) return [];
@@ -1436,7 +1222,7 @@
         }
 
         // ============================================================
-        // 6. 模态框
+        // 模态框
         // ============================================================
         function openModal(item) {
             var overlay = document.getElementById('modalOverlay');
@@ -1478,7 +1264,7 @@
         });
 
         // ============================================================
-        // 7. 加载指定年月数据
+        // 加载指定年月数据
         // ============================================================
         async function loadMonthData(year, monthStr) {
             const grid = document.getElementById('grid');
@@ -1507,7 +1293,7 @@
         }
 
         // ============================================================
-        // 8. 页面初始化
+        // 页面初始化
         // ============================================================
         window.addEventListener('DOMContentLoaded', async function () {
             await loadIndex();
