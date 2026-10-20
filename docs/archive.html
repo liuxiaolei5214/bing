@@ -41,12 +41,12 @@
             z-index: 100;
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
             width: max-content;
             max-width: calc(100% - 40px);
         }
 
-        /* 导航胶囊（保留） */
+        /* 导航胶囊 */
         .nav-capsule {
             display: flex;
             align-items: center;
@@ -75,17 +75,17 @@
         .nav-capsule .nav-item:hover { color: #fff; background: rgba(255,255,255,0.1); }
         .nav-capsule .nav-item.active { color: #fff; background: rgba(255,255,255,0.18); font-weight: 500; }
 
-        /* 筛选区域（取消外部的胶囊背景，直接排在导航后面） */
+        /* 筛选区域 */
         .filter-group {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
             flex-wrap: nowrap;
         }
         
         .filter-input {
-            width: 120px; height: 34px;
-            padding: 0 12px;
+            width: 110px; height: 32px;
+            padding: 0 10px;
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: 20px;
             font-size: 0.85rem;
@@ -101,8 +101,8 @@
         .filter-input::placeholder { color: #aaa; }
 
         .btn-filter-reset {
-            padding: 0 16px;
-            height: 34px;
+            padding: 0 14px;
+            height: 32px;
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: 20px;
             font-weight: 500;
@@ -281,40 +281,42 @@
             color: #aaa; font-size: 0.85rem;
         }
 
-        /* ===== 移动端 ===== */
+        /* ===== 移动端：换行并极度压缩 ===== */
         @media (max-width: 768px) {
             .top-bar-wrapper {
                 top: 12px;
-                gap: 12px;
+                flex-direction: column; /* 垂直排列：导航一行，筛选一行 */
+                gap: 8px;
                 max-width: calc(100% - 20px);
+                align-items: center;
             }
             .nav-capsule {
                 padding: 4px 6px;
                 gap: 2px;
             }
             .nav-capsule .nav-item {
-                padding: 5px 8px;
+                padding: 4px 8px; /* 极小左右内边距 */
                 font-size: 0.7rem;
             }
             .filter-group {
                 gap: 8px;
             }
             .filter-input {
-                width: 85px; height: 28px;
+                width: 90px; height: 26px;
                 font-size: 0.7rem;
                 padding: 0 6px;
             }
             .btn-filter-reset {
                 padding: 0 10px;
-                height: 28px;
+                height: 26px;
                 font-size: 0.7rem;
             }
             .stats {
-                display: none; /* 手机端空间有限，隐藏数量统计 */
+                display: none; /* 隐藏数量统计，省空间 */
             }
 
             .grid { 
-                margin-top: 75px; 
+                margin-top: 110px; /* 顶部控制区换行后需要更多留白 */
                 grid-template-columns: repeat(2, 1fr); 
                 gap: 12px; 
             }
@@ -346,7 +348,7 @@
             <a href="/about.html" class="nav-item">关于</a>
         </nav>
 
-        <!-- 筛选组（已取消外部胶囊） -->
+        <!-- 筛选组 -->
         <div class="filter-group">
             <input class="filter-input" id="monthInput" placeholder="选择年月" readonly>
             <button class="btn-filter-reset" onclick="resetAllFilters()">重置</button>
