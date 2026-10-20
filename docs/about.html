@@ -15,24 +15,13 @@
             color: #e0e0e0;
             min-height: 100vh;
             padding: 20px;
+            /* 保证背景图铺满并固定 */
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
             background-repeat: no-repeat;
             position: relative;
             background-color: #0e1218; /* 增加一个底色防白屏 */
-        }
-        
-        /* 背景遮罩，保证文字清晰 */
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.6));
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            z-index: -1;
-            pointer-events: none;
         }
 
         /* ===== 顶部悬浮胶囊毛玻璃导航 ===== */
@@ -79,16 +68,15 @@
         /* ===== 主体内容容器 ===== */
         .about-container {
             max-width: 1200px;
-            /* 顶部间距变小 */
             margin: 80px auto 30px; 
-            background: rgba(25, 30, 38, 0.45);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            /* 保持容器的磨砂底色，确保文字清晰 */
+            background: rgba(25, 30, 38, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            /* 整体内边距缩小 */
+            border: 1px solid rgba(255, 255, 255, 0.1);
             padding: 32px 40px; 
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
             animation: fadeIn 0.8s ease;
         }
 
@@ -100,7 +88,6 @@
         /* 头部标题 */
         .header-section {
             text-align: center;
-            /* 头部下方间距减小 */
             margin-bottom: 24px;
             padding-bottom: 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -124,14 +111,12 @@
 
         /* 模块通用样式 */
         .info-section {
-            /* 模块之间间距减小 */
             margin-bottom: 24px;
         }
 
         .info-section h2 {
             font-size: 1.3rem;
             color: #fff;
-            /* 标题和正文间距减小 */
             margin-bottom: 10px;
             display: flex;
             align-items: center;
