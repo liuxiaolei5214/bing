@@ -79,41 +79,44 @@
         /* ===== 主体内容容器 ===== */
         .about-container {
             max-width: 1200px;
-            margin: 100px auto 40px;
+            /* 顶部间距变小 */
+            margin: 80px auto 30px; 
             background: rgba(25, 30, 38, 0.45);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border-radius: 24px;
+            border-radius: 20px;
             border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 48px;
+            /* 整体内边距缩小 */
+            padding: 32px 40px; 
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
             animation: fadeIn 0.8s ease;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         /* 头部标题 */
         .header-section {
             text-align: center;
-            margin-bottom: 40px;
-            padding-bottom: 30px;
+            /* 头部下方间距减小 */
+            margin-bottom: 24px;
+            padding-bottom: 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .header-section h1 {
-            font-size: 2.5rem;
+            font-size: 2.4rem;
             font-weight: 700;
             color: #fff;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             letter-spacing: 2px;
             text-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
 
         .header-section p {
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             color: #4d96ff;
             font-weight: 500;
             letter-spacing: 1px;
@@ -121,13 +124,15 @@
 
         /* 模块通用样式 */
         .info-section {
-            margin-bottom: 36px;
+            /* 模块之间间距减小 */
+            margin-bottom: 24px;
         }
 
         .info-section h2 {
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             color: #fff;
-            margin-bottom: 16px;
+            /* 标题和正文间距减小 */
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -137,16 +142,16 @@
             content: '';
             display: inline-block;
             width: 4px;
-            height: 20px;
+            height: 18px;
             background: #4d96ff;
             border-radius: 2px;
         }
 
         .info-section p {
-            font-size: 1rem;
-            line-height: 1.8;
+            font-size: 0.95rem;
+            line-height: 1.7;
             color: #ccc;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             text-align: justify;
         }
 
@@ -154,37 +159,37 @@
         .feature-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 16px;
-            margin-top: 16px;
+            gap: 12px;
+            margin-top: 12px;
         }
 
         .feature-card {
             background: rgba(255, 255, 255, 0.04);
-            padding: 20px;
-            border-radius: 12px;
+            padding: 16px;
+            border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.05);
             transition: all 0.3s ease;
         }
 
         .feature-card:hover {
             background: rgba(255, 255, 255, 0.08);
-            transform: translateY(-4px);
+            transform: translateY(-3px);
             border-color: rgba(77, 150, 255, 0.3);
         }
 
         .feature-card h3 {
-            font-size: 1.05rem;
+            font-size: 1rem;
             color: #fff;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             display: flex;
             align-items: center;
             gap: 6px;
         }
 
         .feature-card p {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #aaa;
-            line-height: 1.6;
+            line-height: 1.5;
             margin: 0;
         }
 
@@ -192,16 +197,16 @@
         .tech-tags {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 16px;
+            gap: 8px;
+            margin-top: 12px;
         }
 
         .tech-tag {
             background: rgba(77, 150, 255, 0.15);
             color: #4d96ff;
-            padding: 6px 16px;
+            padding: 5px 14px;
             border-radius: 20px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 500;
             border: 1px solid rgba(77, 150, 255, 0.3);
         }
@@ -212,8 +217,8 @@
             .top-nav .nav-item { padding: 5px 12px; font-size: 0.72rem; }
             
             .about-container {
-                margin-top: 80px;
-                padding: 24px;
+                margin-top: 70px;
+                padding: 20px;
                 border-radius: 16px;
             }
             
@@ -224,7 +229,6 @@
             .info-section p { font-size: 0.9rem; }
             
             .feature-grid { grid-template-columns: 1fr; }
-            .btn-github { padding: 12px 24px; font-size: 0.95rem; }
         }
     </style>
 </head>
