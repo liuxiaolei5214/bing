@@ -32,8 +32,8 @@
             pointer-events: none;
         }
 
-        /* ===== 方案1：顶部单个胶囊，导航+筛选合并 ===== */
-        .top-nav {
+        /* ===== 顶部悬浮控制区（PC 单行，移动端拆分为双胶囊） ===== */
+        .top-bar-wrapper {
             position: absolute;
             top: 20px;
             left: 50%;
@@ -41,19 +41,29 @@
             z-index: 100;
             display: flex;
             align-items: center;
-            gap: 4px;
-            padding: 6px 10px;
+            gap: 12px;
+            width: max-content;
+            max-width: calc(100% - 40px);
+        }
+
+        /* 通用毛玻璃背景 */
+        .glass-bg {
             background: rgba(40, 40, 40, 0.45);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border-radius: 40px;
             border: 1px solid rgba(255, 255, 255, 0.12);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            flex-wrap: wrap;
-            justify-content: center;
-            max-width: calc(100% - 40px);
         }
-        .top-nav .nav-item {
+
+        /* 导航胶囊 */
+        .nav-capsule {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 10px;
+            border-radius: 40px;
+        }
+        .nav-capsule .nav-item {
             padding: 6px 16px;
             border-radius: 30px;
             font-size: 0.85rem;
@@ -65,22 +75,21 @@
             cursor: pointer;
             border: none;
             background: transparent;
-            font-family: inherit;
         }
-        .top-nav .nav-item:hover { color: #fff; background: rgba(255,255,255,0.1); }
-        .top-nav .nav-item.active { color: #fff; background: rgba(255,255,255,0.18); font-weight: 500; }
+        .nav-capsule .nav-item:hover { color: #fff; background: rgba(255,255,255,0.1); }
+        .nav-capsule .nav-item.active { color: #fff; background: rgba(255,255,255,0.18); font-weight: 500; }
 
-        .nav-divider {
-            width: 1px;
-            height: 20px;
-            background: rgba(255,255,255,0.15);
-            margin: 0 6px;
+        /* 筛选胶囊 */
+        .filter-capsule {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 40px;
+            flex-wrap: nowrap;
         }
-
-        .filter-item { display: flex; align-items: center; gap: 6px; }
-        .filter-label { font-size: 0.8rem; color: #ccc; white-space: nowrap; }
         .filter-input {
-            width: 120px; height: 28px;
+            width: 110px; height: 28px;
             padding: 0 10px;
             border: 1px solid rgba(255,255,255,0.15);
             border-radius: 20px;
@@ -113,12 +122,12 @@
             color: #ccc;
             font-size: 0.8rem;
             white-space: nowrap;
-            padding-left: 10px;
+            padding-left: 8px;
             border-left: 1px solid rgba(255,255,255,0.15);
         }
         .stats span { color: #4d96ff; font-weight: 600; font-size: 0.9rem; margin: 0 2px; }
 
-        /* ===== 月份选择弹窗（保持原样） ===== */
+        /* ===== 月份选择弹窗 ===== */
         .date-mask {
             position: fixed; inset: 0;
             background: rgba(0,0,0,0.4);
@@ -186,6 +195,7 @@
         @media (max-width: 1400px) { .grid { grid-template-columns: repeat(5, 1fr); } }
         @media (max-width: 1100px) { .grid { grid-template-columns: repeat(4, 1fr); } }
         @media (max-width: 820px)  { .grid { grid-template-columns: repeat(3, 1fr); } }
+        
         .card {
             background: rgba(22,22,22,0.5);
             backdrop-filter: blur(4px);
@@ -274,18 +284,43 @@
             color: #aaa; font-size: 0.85rem;
         }
 
-        /* ===== 移动端 ===== */
+        /* ===== 移动端：合并为单行 ===== */
         @media (max-width: 768px) {
-            .top-nav { top: 12px; padding: 6px 8px; gap: 3px; }
-            .top-nav .nav-item { padding: 5px 10px; font-size: 0.72rem; }
-            .filter-label { display: none; }
-            .filter-input { width: 100px; height: 26px; font-size: 0.75rem; }
-            .btn-filter-reset { padding: 3px 8px; font-size: 0.72rem; }
-            .stats { padding-left: 6px; font-size: 0.7rem; }
-            .stats span { font-size: 0.78rem; }
-            .nav-divider { margin: 0 3px; height: 18px; }
+            .top-bar-wrapper {
+                top: 12px;
+                gap: 8px;
+                max-width: calc(100% - 20px);
+            }
+            .nav-capsule {
+                padding: 4px 6px;
+                gap: 2px;
+            }
+            .nav-capsule .nav-item {
+                padding: 5px 8px;
+                font-size: 0.7rem;
+            }
+            .filter-capsule {
+                padding: 4px 8px;
+                gap: 4px;
+            }
+            .filter-input {
+                width: 80px; height: 24px;
+                font-size: 0.7rem;
+                padding: 0 4px;
+            }
+            .btn-filter-reset {
+                padding: 3px 6px;
+                font-size: 0.7rem;
+            }
+            .stats {
+                display: none; /* 手机端空间有限，隐藏数量统计 */
+            }
 
-            .grid { margin-top: 130px; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .grid { 
+                margin-top: 80px; 
+                grid-template-columns: repeat(2, 1fr); 
+                gap: 12px; 
+            }
             .modal-box { display: flex; flex-direction: column; }
             .modal-image { flex: 1; height: auto; }
             .modal-content { padding: 16px 20px 20px; }
@@ -303,23 +338,24 @@
     </style>
 </head>
 <body>
-    <!-- 方案1：导航 + 筛选合并为单个毛玻璃胶囊 -->
-    <nav class="top-nav">
-        <a href="/" class="nav-item">首页</a>
-        <a href="/carousel.html" class="nav-item">精彩轮播</a>
-        <a href="#" class="nav-item active">历史归档</a>
-        <a href="/api.html" class="nav-item">API</a>
-        <a href="/about.html" class="nav-item">关于</a>
+    <!-- 顶部悬浮控制区 -->
+    <div class="top-bar-wrapper">
+        <!-- 导航胶囊 -->
+        <nav class="nav-capsule glass-bg">
+            <a href="/" class="nav-item">首页</a>
+            <a href="/carousel.html" class="nav-item">精彩轮播</a>
+            <a href="#" class="nav-item active">历史归档</a>
+            <a href="/api.html" class="nav-item">API</a>
+            <a href="/about.html" class="nav-item">关于</a>
+        </nav>
 
-        <div class="nav-divider"></div>
-
-        <div class="filter-item">
-            <span class="filter-label">&nbsp;&nbsp;选择年月：</span>
-            <input class="filter-input" id="monthInput" placeholder="请选择" readonly>
+        <!-- 筛选胶囊 -->
+        <div class="filter-capsule glass-bg">
+            <input class="filter-input" id="monthInput" placeholder="选择年月" readonly>
+            <button class="btn-filter-reset" onclick="resetAllFilters()">重置</button>
+            <div class="stats">共 <span id="totalCount">0</span> 张</div>
         </div>
-        <button class="btn-filter-reset" onclick="resetAllFilters()">↺ 重置筛选</button>
-        <div class="stats">共 <span id="totalCount">0</span> 张</div>
-    </nav>
+    </div>
 
     <div class="grid" id="grid">
         <div class="loading">加载壁纸数据中...</div>
@@ -670,7 +706,7 @@
                 var month = String(state.month).padStart(2, '0');
                 loadMonthData(year, month);
             }
-            monthInput.placeholder = '请选择';
+            monthInput.placeholder = '选择年月';
             window.addEventListener('DOMContentLoaded', function () { setTimeout(function () { loadData(); }, 100); });
             window.filterState = {
                 getYear: function () { return state.year; },
