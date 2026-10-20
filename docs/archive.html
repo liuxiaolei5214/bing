@@ -278,14 +278,16 @@
         @media (max-width: 768px) {
             .top-nav { top: 12px; padding: 6px 8px; gap: 3px; }
             .top-nav .nav-item { padding: 5px 10px; font-size: 0.72rem; }
-            .filter-label { display: none; }
+            
+            /* 隐藏移动端不需要的元素 */
+            .filter-label { display: none !important; }
+            .stats { display: none !important; }
+            .nav-divider { display: none !important; }
+
             .filter-input { width: 100px; height: 26px; font-size: 0.75rem; }
             .btn-filter-reset { padding: 3px 8px; font-size: 0.72rem; }
-            .stats { padding-left: 6px; font-size: 0.7rem; }
-            .stats span { font-size: 0.78rem; }
-            .nav-divider { margin: 0 3px; height: 18px; }
 
-            .grid { margin-top: 130px; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .grid { margin-top: 100px; grid-template-columns: repeat(2, 1fr); gap: 12px; }
             .modal-box { display: flex; flex-direction: column; }
             .modal-image { flex: 1; height: auto; }
             .modal-content { padding: 16px 20px 20px; }
