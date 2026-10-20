@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>API 文档 · 光影回顾</title>
+    <meta name="description" content="Bing 每日壁纸归档项目 API 接口文档" />
+    <link rel="icon" href="/favicon.avif">
+    <style>
+        /* ===== 基础重置 ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+            /* 保证背景图铺满并固定 */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            position: relative;
+            background-color: #0e1218; 
+        }
+
+        /* ===== 顶部悬浮胶囊毛玻璃导航 ===== */
+        .top-nav {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 10px;
+            background: rgba(30, 30, 30, 0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .top-nav .nav-item {
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.25s ease;
+            white-space: nowrap;
+        }
+
+        .top-nav .nav-item:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .top-nav .nav-item.active {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.2);
+            font-weight: 500;
+        }
+
+        /* ===== 主体内容容器 ===== */
+        .api-container {
+            max-width: 1100px;
+            margin: 80px auto 30px;
+            /* 保持容器的磨砂底色，确保接口内容清晰 */
+            background: rgba(25, 30, 38, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 32px 40px; 
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            animation: fadeIn 0.8s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .header-section h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        .header-section p {
+            font-size: 1rem;
+            color: #4d96ff;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        /* API 卡片列表 */
+        .api-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .api-card {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .api-card:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(77, 150, 255, 0.3);
+        }
+
+        .api-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .api-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .api-method {
+            background: #2ea043;
+            color: #fff;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .api-title h3 {
+            font-size: 1.1rem;
+            color: #fff;
+            margin: 0;
+        }
+
+        .api-desc {
+            font-size: 0.9rem;
+            color: #bbb;
+            margin-bottom: 14px;
+            line-height: 1.5;
+        }
+
+        /* 地址栏与按钮 */
+        .api-url-box {
+            display: flex;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        .api-url {
+            flex: 1;
+            padding: 10px 14px;
+            font-family: Consolas, Monaco, monospace;
+            font-size: 0.85rem;
+            color: #4d96ff;
+            white-space: nowrap;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .api-url::-webkit-scrollbar { display: none; }
+
+        .btn-group-api {
+            display: flex;
+        }
+
+        .btn-api {
+            padding: 0 16px;
+            background: transparent;
+            border: none;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ccc;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-api:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-api svg {
+            width: 14px;
+            height: 14px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+
+        /* ===== 在线调试区域 ===== */
+        .debug-section {
+            margin-top: 24px;
+            display: none;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+        }
+
+        .debug-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+
+        .btn-close-debug {
+            background: transparent;
+            border: none;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        .btn-close-debug:hover { color: #fff; }
+
+        .debug-code {
+            padding: 16px;
+            font-family: Consolas, Monaco, monospace;
+            font-size: 0.85rem;
+            color: #a5d6ff;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .debug-code::-webkit-scrollbar { width: 6px; }
+        .debug-code::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 768px) {
+            .top-nav { top: 12px; padding: 4px 8px; gap: 2px; }
+            .top-nav .nav-item { padding: 5px 12px; font-size: 0.72rem; }
+            
+            .api-container {
+                margin-top: 70px;
+                padding: 20px;
+                border-radius: 16px;
+            }
+            
+            .header-section h1 { font-size: 1.8rem; }
+            
+            .api-header { flex-direction: column; align-items: flex-start; }
+            .api-url-box { flex-direction: column; }
+            .api-url { padding: 10px; font-size: 0.75rem; white-space: normal; word-break: break-all; }
+            .btn-group-api { border-top: 1px solid rgba(255,255,255,0.1); }
+            .btn-api { flex: 1; justify-content: center; padding: 10px; border-left: none; }
+            .btn-api:first-child { border-right: 1px solid rgba(255,255,255,0.1); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 顶部悬浮导航 -->
+    <nav class="top-nav">
+        <a href="/" class="nav-item">首页</a>
+        <a href="/carousel.html" class="nav-item">精彩轮播</a>
+        <a href="/archive.html" class="nav-item">历史归档</a>
+        <a href="#" class="nav-item active">API</a>
+        <a href="/about.html" class="nav-item">关于</a>
+    </nav>
+
+    <!-- 主体内容 -->
+    <div class="api-container">
+        
+        <div class="header-section">
+            <h1>API 接口文档</h1>
+            <p>基于静态 JSON 构建的免费壁纸数据接口</p>
+        </div>
+
+        <div class="api-list">
+            
+            <!-- 接口 1: today.json -->
+            <div class="api-card">
+                <div class="api-header">
+                    <div class="api-title">
+                        <span class="api-method">GET</span>
+                        <h3>获取当天壁纸 (today.json)</h3>
+                    </div>
+                </div>
+                <div class="api-desc">返回必应当天的壁纸数据，包含标题、描述、4K及1080P下载地址等基本信息。</div>
+                <div class="api-url-box">
+                    <div class="api-url" id="url-today"></div>
+                    <div class="btn-group-api">
+                        <button class="btn-api" onclick="copyUrl('url-today')">
+                            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            复制
+                        </button>
+                        <button class="btn-api" onclick="testApi('today')">
+                            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            测试
+                        </button>
+                    </div>
+                </div>
+                <div class="debug-section" id="debug-today">
+                    <div class="debug-header">
+                        <span>响应数据预览</span>
+                        <button class="btn-close-debug" onclick="closeDebug('today')">✕</button>
+                    </div>
+                    <div class="debug-code" id="code-today">请求中...</div>
+                </div>
+            </div>
+
+            <!-- 接口 2: bing_wallpaper.json -->
+            <div class="api-card">
+                <div class="api-header">
+                    <div class="api-title">
+                        <span class="api-method">GET</span>
+                        <h3>获取近 14 天壁纸 (bing_wallpaper.json)</h3>
+                    </div>
+                </div>
+                <div class="api-desc">返回必应近 14 天的壁纸列表数据，可用于构建轮播图或近期回顾功能。</div>
+                <div class="api-url-box">
+                    <div class="api-url" id="url-14days"></div>
+                    <div class="btn-group-api">
+                        <button class="btn-api" onclick="copyUrl('url-14days')">
+                            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            复制
+                        </button>
+                        <button class="btn-api" onclick="testApi('14days')">
+                            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            测试
+                        </button>
+                    </div>
+                </div>
+                <div class="debug-section" id="debug-14days">
+                    <div class="debug-header">
+                        <span>响应数据预览</span>
+                        <button class="btn-close-debug" onclick="closeDebug('14days')">✕</button>
+                    </div>
+                    <div class="debug-code" id="code-14days">请求中...</div>
+                </div>
+            </div>
+
+            <!-- 接口 3: later.json -->
+            <div class="api-card">
+                <div class="api-header">
+                    <div class="api-title">
+                        <span class="api-method">GET</span>
+                        <h3>获取最新一天壁纸 (later.json)</h3>
+                    </div>
+                </div>
+                <div class="api-desc">返回必应最新抓取到的一天壁纸数据（由于时差问题，可能比 today.json 更早更新）。</div>
+                <div class="api-url-box">
+                    <div class="api-url" id="url-later"></div>
+                    <div class="btn-group-api">
+                        <button class="btn-api" onclick="copyUrl('url-later')">
+                            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            复制
+                        </button>
+                        <button class="btn-api" onclick="testApi('later')">
+                            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            测试
+                        </button>
+                    </div>
+                </div>
+                <div class="debug-section" id="debug-later">
+                    <div class="debug-header">
+                        <span>响应数据预览</span>
+                        <button class="btn-close-debug" onclick="closeDebug('later')">✕</button>
+                    </div>
+                    <div class="debug-code" id="code-later">请求中...</div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // ===== 背景图控制逻辑 =====
+        var USE_TODAY_BG = true;
+        var FIXED_BG = 'https://image.lei5214.cc.cd/img/2026/08/10.jpg'; 
+
+        function setBackground(url) {
+            document.body.style.backgroundImage = 'url(' + url + ')';
+        }
+
+        var JSON_BASE = 'json';
+        var PATH_TODAY = JSON_BASE + '/today.json';
+        var PATH_MONTH = function (year, month) {
+            return JSON_BASE + '/month/' + year + '/' + year + '-' + month + '.json';
+        };
+        var monthFileCache = {};
+
+        function fetchMonthFile(year, month) {
+            var key = year + '-' + month;
+            if (!monthFileCache[key]) {
+                var url = PATH_MONTH(year, month);
+                monthFileCache[key] = fetch(url)
+                    .then(function (resp) {
+                        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                        return resp.json();
+                    })
+                    .catch(function (err) {
+                        delete monthFileCache[key];
+                        throw err;
+                    });
+            }
+            return monthFileCache[key];
+        }
+
+        function getTodayStr() {
+            var now = new Date();
+            var y = now.getFullYear();
+            var m = String(now.getMonth() + 1).padStart(2, '0');
+            var d = String(now.getDate()).padStart(2, '0');
+            return y + '-' + m + '-' + d;
+        }
+
+        async function loadTodayBg() {
+            try {
+                var todayStr = getTodayStr();
+                var year = todayStr.substring(0, 4);
+                var month = todayStr.substring(5, 7);
+                var item = null;
+                try {
+                    var monthData = await fetchMonthFile(year, month);
+                    if (Array.isArray(monthData) && monthData.length > 0) {
+                        item = monthData.find(function (d) { return d.date === todayStr; });
+                    }
+                } catch (e) {}
+                if (!item) {
+                    try {
+                        var resp2 = await fetch(PATH_TODAY);
+                        if (resp2.ok) {
+                            var todayData = await resp2.json();
+                            if (Array.isArray(todayData) && todayData.length > 0) {
+                                item = todayData[0];
+                            } else if (todayData && typeof todayData === 'object') {
+                                item = todayData;
+                            }
+                        }
+                    } catch (e) {}
+                }
+                if (item && item.bing_url) {
+                    var bgUrl = item.bing_url.replace('_UHD.jpg', '_1920x1080.jpg');
+                    setBackground(bgUrl);
+                } else {
+                    setBackground(FIXED_BG);
+                }
+            } catch (e) {
+                setBackground(FIXED_BG);
+            }
+        }
+
+        if (USE_TODAY_BG) {
+            loadTodayBg();
+        } else {
+            setBackground(FIXED_BG);
+        }
+
+        // ===== API 页面专属逻辑 =====
+
+        // 获取当前网站的根目录 URL（兼容 GitHub Pages 和本地开发）
+        const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
+
+        // 配置接口地址
+        const apis = {
+            'today': baseUrl + 'json/today.json',
+            '14days': baseUrl + 'json/bing_wallpaper.json',
+            'later': baseUrl + 'json/later.json'
+        };
+
+        // 初始化填充 URL 到页面上
+        document.getElementById('url-today').textContent = apis['today'];
+        document.getElementById('url-14days').textContent = apis['14days'];
+        document.getElementById('url-later').textContent = apis['later'];
+
+        // 复制功能
+        function copyUrl(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById(elementId).nextElementSibling.querySelector('.btn-api');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '已复制!';
+                btn.style.color = '#2ea043';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.color = '';
+                }, 2000);
+            }).catch(err => {
+                alert('复制失败，请手动选择复制');
+            });
+        }
+
+        // 测试接口功能
+        async function testApi(apiName) {
+            const debugSection = document.getElementById('debug-' + apiName);
+            const codeBlock = document.getElementById('code-' + apiName);
+            
+            // 切换显示状态
+            if (debugSection.style.display === 'block') {
+                debugSection.style.display = 'none';
+                return;
+            }
+            
+            debugSection.style.display = 'block';
+            codeBlock.textContent = '请求中...';
+            codeBlock.style.color = '#a5d6ff';
+            
+            try {
+                const response = await fetch(apis[apiName]);
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                
+                const data = await response.json();
+                // 格式化 JSON 字符串
+                codeBlock.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                codeBlock.textContent = '请求失败: ' + error.message;
+                codeBlock.style.color = '#e74c3c';
+            }
+        }
+
+        function closeDebug(apiName) {
+            document.getElementById('debug-' + apiName).style.display = 'none';
+        }
+    </script>
+</body>
+</html>
