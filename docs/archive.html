@@ -49,7 +49,7 @@
             border-radius: 40px;
             border: 1px solid rgba(255, 255, 255, 0.12);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            flex-wrap: wrap;
+            flex-wrap: wrap; /* 电脑端允许换行 */
             justify-content: center;
             max-width: calc(100% - 40px);
         }
@@ -118,7 +118,7 @@
         }
         .stats span { color: #4d96ff; font-weight: 600; font-size: 0.9rem; margin: 0 2px; }
 
-        /* ===== 月份选择弹窗（保持原样） ===== */
+        /* ===== 月份选择弹窗 ===== */
         .date-mask {
             position: fixed; inset: 0;
             background: rgba(0,0,0,0.4);
@@ -175,7 +175,7 @@
         .year-cell.disabled:hover { background: transparent; color: #999; }
         .year-cell.empty { cursor: default; opacity: 0; pointer-events: none; }
 
-        /* ===== 卡片网格：桌面固定 6 列，窄屏自动降级 ===== */
+        /* ===== 卡片网格 ===== */
         .grid {
             max-width: 1400px;
             margin: 100px auto 0;
@@ -276,18 +276,36 @@
 
         /* ===== 移动端 ===== */
         @media (max-width: 768px) {
-            .top-nav { top: 12px; padding: 6px 8px; gap: 3px; }
-            .top-nav .nav-item { padding: 5px 10px; font-size: 0.72rem; }
+            .top-nav { 
+                top: 12px; 
+                padding: 5px 8px; 
+                gap: 2px; 
+                flex-wrap: nowrap; /* 强制不换行 */
+                width: max-content;
+            }
+            .top-nav .nav-item { 
+                padding: 4px 6px; /* 极小内边距 */
+                font-size: 0.7rem; 
+            }
             
-            /* 隐藏移动端不需要的元素 */
+            /* 隐藏不需要的元素 */
             .filter-label { display: none !important; }
             .stats { display: none !important; }
             .nav-divider { display: none !important; }
 
-            .filter-input { width: 100px; height: 26px; font-size: 0.75rem; }
-            .btn-filter-reset { padding: 3px 8px; font-size: 0.72rem; }
+            .filter-input { 
+                width: 80px; /* 进一步缩小输入框 */
+                height: 24px; 
+                font-size: 0.7rem; 
+                padding: 0 4px;
+            }
+            .btn-filter-reset { 
+                padding: 3px 8px; 
+                font-size: 0.7rem; 
+                height: 24px;
+            }
 
-            .grid { margin-top: 100px; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .grid { margin-top: 80px; grid-template-columns: repeat(2, 1fr); gap: 12px; }
             .modal-box { display: flex; flex-direction: column; }
             .modal-image { flex: 1; height: auto; }
             .modal-content { padding: 16px 20px 20px; }
@@ -319,7 +337,8 @@
             <span class="filter-label">&nbsp;&nbsp;选择年月：</span>
             <input class="filter-input" id="monthInput" placeholder="请选择" readonly>
         </div>
-        <button class="btn-filter-reset" onclick="resetAllFilters()">↺ 重置筛选</button>
+        <!-- 在 JS 里根据屏幕宽度修改文字 -->
+        <button class="btn-filter-reset" id="btnReset" onclick="resetAllFilters()">↺ 重置筛选</button>
         <div class="stats">共 <span id="totalCount">0</span> 张</div>
     </nav>
 
@@ -352,6 +371,18 @@
     <div id="loadProgress" class="hidden">加载图片 0/0</div>
 
     <script>
+        // 根据屏幕宽度调整重置按钮的文字
+        function adjustResetBtnText() {
+            var btn = document.getElementById('btnReset');
+            if (window.innerWidth <= 768) {
+                btn.innerHTML = '重置';
+            } else {
+                btn.innerHTML = '↺ 重置筛选';
+            }
+        }
+        window.addEventListener('resize', adjustResetBtnText);
+        adjustResetBtnText();
+
         var USE_TODAY_BG = true;
         var FIXED_BG = 'https://image.lei5214.cc.cd/img/2026/08/10.jpg';
         function setBackground(url) { document.body.style.backgroundImage = 'url(' + url + ')'; }
