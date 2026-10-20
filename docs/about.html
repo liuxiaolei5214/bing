@@ -20,6 +20,7 @@
             background-attachment: fixed;
             background-repeat: no-repeat;
             position: relative;
+            background-color: #0e1218; /* 增加一个底色防白屏 */
         }
         
         /* 背景遮罩，保证文字清晰 */
@@ -346,5 +347,97 @@
 
     </div>
 
+    <script>
+        // ===== 背景图控制逻辑 =====
+        var USE_TODAY_BG = true;
+        var FIXED_BG = 'https://image.lei5214.cc.cd/img/2026/08/10.jpg'; // 默认兜底背景
+
+        function setBackground(url) {
+            document.body.style.backgroundImage = 'url(' + url + ')';
+        }
+
+        // 路径配置
+        var JSON_BASE = 'json';
+        var PATH_TODAY = JSON_BASE + '/today.json';
+        var PATH_MONTH = function (year, month) {
+            return JSON_BASE + '/month/' + year + '/' + year + '-' + month + '.json';
+        };
+
+        var monthFileCache = {};
+        
+        function fetchMonthFile(year, month) {
+            var key = year + '-' + month;
+            if (!monthFileCache[key]) {
+                var url = PATH_MONTH(year, month);
+                monthFileCache[key] = fetch(url)
+                    .then(function (resp) {
+                        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                        return resp.json();
+                    })
+                    .catch(function (err) {
+                        delete monthFileCache[key];
+                        throw err;
+                    });
+            }
+            return monthFileCache[key];
+        }
+
+        function getTodayStr() {
+            var now = new Date();
+            var y = now.getFullYear();
+            var m = String(now.getMonth() + 1).padStart(2, '0');
+            var d = String(now.getDate()).padStart(2, '0');
+            return y + '-' + m + '-' + d;
+        }
+
+        async function loadTodayBg() {
+            try {
+                var todayStr = getTodayStr();
+                var year = todayStr.substring(0, 4);
+                var month = todayStr.substring(5, 7);
+                var item = null;
+        
+                // 1. 尝试从月份文件中查找当天数据
+                try {
+                    var monthData = await fetchMonthFile(year, month);
+                    if (Array.isArray(monthData) && monthData.length > 0) {
+                        item = monthData.find(function (d) { return d.date === todayStr; });
+                    }
+                } catch (e) {}
+        
+                // 2. 回退到 today.json
+                if (!item) {
+                    try {
+                        var resp2 = await fetch(PATH_TODAY);
+                        if (resp2.ok) {
+                            var todayData = await resp2.json();
+                            if (Array.isArray(todayData) && todayData.length > 0) {
+                                item = todayData[0];
+                            } else if (todayData && typeof todayData === 'object') {
+                                item = todayData;
+                            }
+                        }
+                    } catch (e) {}
+                }
+        
+                // 3. 设置背景图
+                if (item && item.bing_url) {
+                    var bgUrl = item.bing_url.replace('_UHD.jpg', '_1920x1080.jpg');
+                    setBackground(bgUrl);
+                } else {
+                    setBackground(FIXED_BG);
+                }
+            } catch (e) {
+                setBackground(FIXED_BG);
+            }
+        }
+
+        // 启动背景加载
+        if (USE_TODAY_BG) {
+            loadTodayBg();
+        } else {
+            setBackground(FIXED_BG);
+        }
+    </script>
 </body>
 </html>
