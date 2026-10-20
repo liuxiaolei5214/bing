@@ -32,22 +32,13 @@
             pointer-events: none;
         }
 
-        /* ===== 顶部悬浮控制区 ===== */
-        .top-bar-wrapper {
+        /* ===== 方案1：顶部单个胶囊，导航+筛选合并 ===== */
+        .top-nav {
             position: absolute;
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 100;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            width: max-content;
-            max-width: calc(100% - 40px);
-        }
-
-        /* 导航胶囊 */
-        .nav-capsule {
             display: flex;
             align-items: center;
             gap: 4px;
@@ -58,8 +49,11 @@
             border-radius: 40px;
             border: 1px solid rgba(255, 255, 255, 0.12);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: calc(100% - 40px);
         }
-        .nav-capsule .nav-item {
+        .top-nav .nav-item {
             padding: 6px 16px;
             border-radius: 30px;
             font-size: 0.85rem;
@@ -71,60 +65,60 @@
             cursor: pointer;
             border: none;
             background: transparent;
+            font-family: inherit;
         }
-        .nav-capsule .nav-item:hover { color: #fff; background: rgba(255,255,255,0.1); }
-        .nav-capsule .nav-item.active { color: #fff; background: rgba(255,255,255,0.18); font-weight: 500; }
+        .top-nav .nav-item:hover { color: #fff; background: rgba(255,255,255,0.1); }
+        .top-nav .nav-item.active { color: #fff; background: rgba(255,255,255,0.18); font-weight: 500; }
 
-        /* 筛选区域 */
-        .filter-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: nowrap;
+        .nav-divider {
+            width: 1px;
+            height: 20px;
+            background: rgba(255,255,255,0.15);
+            margin: 0 6px;
         }
-        
+
+        .filter-item { display: flex; align-items: center; gap: 6px; }
+        .filter-label { font-size: 0.8rem; color: #ccc; white-space: nowrap; }
         .filter-input {
-            width: 110px; height: 32px;
+            width: 120px; height: 28px;
             padding: 0 10px;
-            border: 1px solid rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.15);
             border-radius: 20px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             outline: none; cursor: pointer;
-            background: rgba(20, 20, 20, 0.5);
+            background: rgba(0,0,0,0.3);
             color: #fff;
             transition: all 0.3s;
             text-align: center;
-            backdrop-filter: blur(10px);
         }
-        .filter-input:hover { border-color: rgba(255,255,255,0.4); }
+        .filter-input:hover { border-color: rgba(255,255,255,0.3); }
         .filter-input:focus { border-color: #4d96ff; box-shadow: 0 0 0 3px rgba(77,150,255,0.2); }
-        .filter-input::placeholder { color: #aaa; }
+        .filter-input::placeholder { color: #888; }
 
         .btn-filter-reset {
-            padding: 0 14px;
-            height: 32px;
-            border: 1px solid rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: 20px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 0.85rem;
-            background: rgba(20, 20, 20, 0.5);
+            font-size: 0.8rem;
+            background: rgba(255,255,255,0.1);
             color: #fff;
             white-space: nowrap;
-            backdrop-filter: blur(10px);
         }
-        .btn-filter-reset:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); }
+        .btn-filter-reset:hover { background: rgba(255,255,255,0.2); }
 
         .stats {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 0.85rem;
+            color: #ccc;
+            font-size: 0.8rem;
             white-space: nowrap;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            padding-left: 10px;
+            border-left: 1px solid rgba(255,255,255,0.15);
         }
-        .stats span { color: #4d96ff; font-weight: 600; font-size: 1rem; margin: 0 2px; }
+        .stats span { color: #4d96ff; font-weight: 600; font-size: 0.9rem; margin: 0 2px; }
 
-        /* ===== 月份选择弹窗 ===== */
+        /* ===== 月份选择弹窗（保持原样） ===== */
         .date-mask {
             position: fixed; inset: 0;
             background: rgba(0,0,0,0.4);
@@ -181,7 +175,7 @@
         .year-cell.disabled:hover { background: transparent; color: #999; }
         .year-cell.empty { cursor: default; opacity: 0; pointer-events: none; }
 
-        /* ===== 卡片网格 ===== */
+        /* ===== 卡片网格：桌面固定 6 列，窄屏自动降级 ===== */
         .grid {
             max-width: 1400px;
             margin: 100px auto 0;
@@ -192,7 +186,6 @@
         @media (max-width: 1400px) { .grid { grid-template-columns: repeat(5, 1fr); } }
         @media (max-width: 1100px) { .grid { grid-template-columns: repeat(4, 1fr); } }
         @media (max-width: 820px)  { .grid { grid-template-columns: repeat(3, 1fr); } }
-        
         .card {
             background: rgba(22,22,22,0.5);
             backdrop-filter: blur(4px);
@@ -281,45 +274,18 @@
             color: #aaa; font-size: 0.85rem;
         }
 
-        /* ===== 移动端：换行并极度压缩 ===== */
+        /* ===== 移动端 ===== */
         @media (max-width: 768px) {
-            .top-bar-wrapper {
-                top: 12px;
-                flex-direction: column; /* 垂直排列：导航一行，筛选一行 */
-                gap: 8px;
-                max-width: calc(100% - 20px);
-                align-items: center;
-            }
-            .nav-capsule {
-                padding: 4px 6px;
-                gap: 2px;
-            }
-            .nav-capsule .nav-item {
-                padding: 4px 8px; /* 极小左右内边距 */
-                font-size: 0.7rem;
-            }
-            .filter-group {
-                gap: 8px;
-            }
-            .filter-input {
-                width: 90px; height: 26px;
-                font-size: 0.7rem;
-                padding: 0 6px;
-            }
-            .btn-filter-reset {
-                padding: 0 10px;
-                height: 26px;
-                font-size: 0.7rem;
-            }
-            .stats {
-                display: none; /* 隐藏数量统计，省空间 */
-            }
+            .top-nav { top: 12px; padding: 6px 8px; gap: 3px; }
+            .top-nav .nav-item { padding: 5px 10px; font-size: 0.72rem; }
+            .filter-label { display: none; }
+            .filter-input { width: 100px; height: 26px; font-size: 0.75rem; }
+            .btn-filter-reset { padding: 3px 8px; font-size: 0.72rem; }
+            .stats { padding-left: 6px; font-size: 0.7rem; }
+            .stats span { font-size: 0.78rem; }
+            .nav-divider { margin: 0 3px; height: 18px; }
 
-            .grid { 
-                margin-top: 110px; /* 顶部控制区换行后需要更多留白 */
-                grid-template-columns: repeat(2, 1fr); 
-                gap: 12px; 
-            }
+            .grid { margin-top: 130px; grid-template-columns: repeat(2, 1fr); gap: 12px; }
             .modal-box { display: flex; flex-direction: column; }
             .modal-image { flex: 1; height: auto; }
             .modal-content { padding: 16px 20px 20px; }
@@ -337,24 +303,23 @@
     </style>
 </head>
 <body>
-    <!-- 顶部悬浮控制区 -->
-    <div class="top-bar-wrapper">
-        <!-- 导航胶囊 -->
-        <nav class="nav-capsule">
-            <a href="/" class="nav-item">首页</a>
-            <a href="/carousel.html" class="nav-item">精彩轮播</a>
-            <a href="#" class="nav-item active">历史归档</a>
-            <a href="/api.html" class="nav-item">API</a>
-            <a href="/about.html" class="nav-item">关于</a>
-        </nav>
+    <!-- 方案1：导航 + 筛选合并为单个毛玻璃胶囊 -->
+    <nav class="top-nav">
+        <a href="/" class="nav-item">首页</a>
+        <a href="/carousel.html" class="nav-item">精彩轮播</a>
+        <a href="#" class="nav-item active">历史归档</a>
+        <a href="/api.html" class="nav-item">API</a>
+        <a href="/about.html" class="nav-item">关于</a>
 
-        <!-- 筛选组 -->
-        <div class="filter-group">
-            <input class="filter-input" id="monthInput" placeholder="选择年月" readonly>
-            <button class="btn-filter-reset" onclick="resetAllFilters()">重置</button>
-            <div class="stats">共 <span id="totalCount">0</span> 张</div>
+        <div class="nav-divider"></div>
+
+        <div class="filter-item">
+            <span class="filter-label">&nbsp;&nbsp;选择年月：</span>
+            <input class="filter-input" id="monthInput" placeholder="请选择" readonly>
         </div>
-    </div>
+        <button class="btn-filter-reset" onclick="resetAllFilters()">↺ 重置筛选</button>
+        <div class="stats">共 <span id="totalCount">0</span> 张</div>
+    </nav>
 
     <div class="grid" id="grid">
         <div class="loading">加载壁纸数据中...</div>
@@ -705,7 +670,7 @@
                 var month = String(state.month).padStart(2, '0');
                 loadMonthData(year, month);
             }
-            monthInput.placeholder = '选择年月';
+            monthInput.placeholder = '请选择';
             window.addEventListener('DOMContentLoaded', function () { setTimeout(function () { loadData(); }, 100); });
             window.filterState = {
                 getYear: function () { return state.year; },
