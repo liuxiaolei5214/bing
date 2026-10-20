@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>壁纸归档 · 光影回顾</title>
+    <title>壁纸归档 · 光影回顾（方案1：导航+筛选合并）</title>
     <link rel="icon" href="/favicon.avif">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             color: #e0e0e0;
@@ -19,15 +19,12 @@
             background-repeat: no-repeat;
             position: relative;
         }
-        
-        /* 背景遮罩 */
+
         body::before {
             content: '';
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(0,0,0,0.3);
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
@@ -35,9 +32,9 @@
             pointer-events: none;
         }
 
-        /* ===== 顶部悬浮胶囊毛玻璃导航 ===== */
+        /* ===== 方案1：顶部单个胶囊，导航+筛选合并 ===== */
         .top-nav {
-            position: absolute; /* 改为绝对定位，随页面滚动 */
+            position: absolute;
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
@@ -52,10 +49,12 @@
             border-radius: 40px;
             border: 1px solid rgba(255, 255, 255, 0.12);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: calc(100% - 40px);
         }
-
         .top-nav .nav-item {
-            padding: 6px 18px;
+            padding: 6px 16px;
             border-radius: 30px;
             font-size: 0.85rem;
             font-weight: 400;
@@ -68,459 +67,222 @@
             background: transparent;
             font-family: inherit;
         }
+        .top-nav .nav-item:hover { color: #fff; background: rgba(255,255,255,0.1); }
+        .top-nav .nav-item.active { color: #fff; background: rgba(255,255,255,0.18); font-weight: 500; }
 
-        .top-nav .nav-item:hover {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .top-nav .nav-item.active {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.18);
-            font-weight: 500;
+        .nav-divider {
+            width: 1px;
+            height: 20px;
+            background: rgba(255,255,255,0.15);
+            margin: 0 6px;
         }
 
-        /* ===== 紧凑型的搜索悬浮栏 ===== */
-        .top-bar {
-            max-width: 1400px;
-            margin: 80px auto 24px; /* 顶部留出导航栏高度 */
-            display: flex;
-            justify-content: center; /* 居中显示 */
-        }
-        
-        .filter-capsule {
-            display: inline-flex;
-            align-items: center;
-            gap: 16px;
-            padding: 8px 16px 8px 24px;
-            background: rgba(22, 22, 22, 0.55);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-            flex-wrap: wrap;
-        }
-        
-        .filter-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .filter-label {
-            font-size: 14px;
-            color: #ccc;
-            white-space: nowrap;
-        }
-        
+        .filter-item { display: flex; align-items: center; gap: 6px; }
+        .filter-label { font-size: 0.8rem; color: #ccc; white-space: nowrap; }
         .filter-input {
-            width: 130px;
-            height: 32px;
-            padding: 0 12px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            width: 120px; height: 28px;
+            padding: 0 10px;
+            border: 1px solid rgba(255,255,255,0.15);
             border-radius: 20px;
-            font-size: 14px;
-            outline: none;
-            cursor: pointer;
-            background: rgba(0, 0, 0, 0.3); 
+            font-size: 0.8rem;
+            outline: none; cursor: pointer;
+            background: rgba(0,0,0,0.3);
             color: #fff;
             transition: all 0.3s;
             text-align: center;
         }
-        .filter-input:hover { border-color: rgba(255, 255, 255, 0.3); }
+        .filter-input:hover { border-color: rgba(255,255,255,0.3); }
         .filter-input:focus { border-color: #4d96ff; box-shadow: 0 0 0 3px rgba(77,150,255,0.2); }
         .filter-input::placeholder { color: #888; }
-        
+
         .btn-filter-reset {
-            padding: 6px 16px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 4px 12px;
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: 20px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 0.85rem;
-            background: rgba(255, 255, 255, 0.1);
+            font-size: 0.8rem;
+            background: rgba(255,255,255,0.1);
             color: #fff;
             white-space: nowrap;
         }
-        .btn-filter-reset:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
+        .btn-filter-reset:hover { background: rgba(255,255,255,0.2); }
+
         .stats {
             color: #ccc;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             white-space: nowrap;
-            padding-left: 8px;
-            border-left: 1px solid rgba(255, 255, 255, 0.15);
+            padding-left: 10px;
+            border-left: 1px solid rgba(255,255,255,0.15);
         }
-        .stats span {
-            color: #4d96ff;
-            font-weight: 600;
-            font-size: 1rem;
-            margin: 0 2px;
-        }
+        .stats span { color: #4d96ff; font-weight: 600; font-size: 0.9rem; margin: 0 2px; }
 
-        /* ===== 月份选择弹窗 ===== */
+        /* ===== 月份选择弹窗（保持原样） ===== */
         .date-mask {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.4);
-            display: none;
-            z-index: 999;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.4);
+            display: none; z-index: 999;
             backdrop-filter: blur(4px);
         }
         .date-mask.show { display: block; }
-        
         .date-popup {
             position: absolute;
-            background: #ffffff;
+            background: #fff;
             border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
             width: 340px;
             overflow: hidden;
             animation: popupFade 0.2s ease;
             border: 1px solid #e8e8e8;
         }
-        
         @keyframes popupFade {
             from { opacity: 0; transform: translateY(-8px) scale(0.97); }
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
-        
         .popup-header {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 50px;
-            padding: 10px 16px;
-            min-height: 42px;
-            border-bottom: 1px solid #f0f0f0;
-            background: #fafafa;
+            display: flex; justify-content: center; align-items: center;
+            gap: 50px; padding: 10px 16px; min-height: 42px;
+            border-bottom: 1px solid #f0f0f0; background: #fafafa;
         }
-        
         .popup-header-title { font-size: 15px; font-weight: 600; color: #333; }
-        
-        .popup-year-nav {
-            display: flex;
-            align-items: center;
-            gap: 50px;
-            justify-content: center;
-            background: transparent;
-            padding: 0;
-        }
-        
+        .popup-year-nav { display: flex; align-items: center; gap: 50px; justify-content: center; background: transparent; padding: 0; }
         .popup-year-btn, .popup-year-page-btn {
-            background: transparent;
-            border: none;
-            color: #666;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 0 10px;
-            transition: color 0.2s;
-            line-height: 1;
+            background: transparent; border: none; color: #666;
+            font-size: 20px; cursor: pointer; padding: 0 10px;
+            transition: color 0.2s; line-height: 1;
         }
-        
         .popup-year-btn:hover, .popup-year-page-btn:hover { color: #4d96ff; }
-        
         .popup-year-text {
-            font-size: 17px;
-            color: #333;
-            font-weight: 600;
-            min-width: 70px;
-            text-align: center;
-            cursor: pointer;
-            padding: 2px 8px;
-            border-radius: 6px;
-            transition: background 0.2s;
+            font-size: 17px; color: #333; font-weight: 600;
+            min-width: 70px; text-align: center; cursor: pointer;
+            padding: 2px 8px; border-radius: 6px; transition: background 0.2s;
         }
         .popup-year-text:hover { background: #f0f5ff; }
-        
         .month-grid, .year-grid-popup {
             padding: 4px 10px 8px 10px;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 4px;
-            background: #ffffff;
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 4px; background: #fff;
         }
-        
         .month-cell, .year-cell {
-            text-align: center;
-            padding: 16px 0;
-            font-size: 14px;
-            color: #555;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 500;
+            text-align: center; padding: 16px 0; font-size: 14px;
+            color: #555; border-radius: 6px; cursor: pointer;
+            transition: all 0.2s; font-weight: 500;
         }
-        
         .month-cell:hover, .year-cell:hover { background: #f0f5ff; color: #4d96ff; }
         .month-cell.active, .year-cell.active { background: #4d96ff; color: #fff; }
-        
         .year-cell.disabled { opacity: 0.35; cursor: default; color: #999; }
         .year-cell.disabled:hover { background: transparent; color: #999; }
         .year-cell.empty { cursor: default; opacity: 0; pointer-events: none; }
 
-        /* ===== 瀑布流卡片网格 ===== */
+        /* ===== 卡片网格（上边距加大，给顶部胶囊留位） ===== */
         .grid {
             max-width: 1400px;
-            margin: 0 auto;
+            margin: 100px auto 0;
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
             gap: 20px;
         }
         .card {
-            background: rgba(22, 22, 22, 0.5);
+            background: rgba(22,22,22,0.5);
             backdrop-filter: blur(4px);
             border-radius: 12px;
             overflow: hidden;
             transition: transform 0.25s ease, box-shadow 0.25s ease;
             cursor: pointer;
             position: relative;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255,255,255,0.05);
         }
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-            border-color: rgba(255, 255, 255, 0.15);
-        }
-
-        .card .img-wrapper {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            background: #1a1a1a;
-            overflow: hidden;
-        }
-        .card .img-wrapper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-            opacity: 0;
-            transition: opacity 0.4s ease;
-        }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15); }
+        .card .img-wrapper { position: relative; width: 100%; aspect-ratio: 16/9; background: #1a1a1a; overflow: hidden; }
+        .card .img-wrapper img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0; transition: opacity 0.4s ease; }
         .card .img-wrapper img.loaded { opacity: 1; }
-        
-        .card .img-wrapper .placeholder {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #1a1a1a;
-        }
-        .card .img-wrapper .placeholder .spinner {
-            width: 30px;
-            height: 30px;
-            border: 3px solid #333;
-            border-top-color: #4d96ff;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
+        .card .img-wrapper .placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #1a1a1a; }
+        .card .img-wrapper .placeholder .spinner { width: 30px; height: 30px; border: 3px solid #333; border-top-color: #4d96ff; border-radius: 50%; animation: spin 0.8s linear infinite; }
         .card .img-wrapper .placeholder .error-text { color: #e74c3c; font-size: 13px; }
-
         .card .info { padding: 12px 16px 16px; }
         .card .info .date { font-size: 0.8rem; color: #aaa; font-weight: 500; }
-        .card .info .title {
-            font-size: 0.9rem;
-            color: #ffffff;
-            font-weight: 600;
-            margin-top: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+        .card .info .title { font-size: 0.9rem; color: #fff; font-weight: 600; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .card .info .btn-group { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-        
         .card .info .btn-group .download-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 14px;
-            color: #fff;
-            border-radius: 6px;
-            text-decoration: none;
-            font-size: 0.75rem;
-            font-weight: 500;
-            transition: background 0.2s;
-            border: none;
-            cursor: pointer;
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 14px; color: #fff; border-radius: 6px;
+            text-decoration: none; font-size: 0.75rem; font-weight: 500;
+            transition: background 0.2s; border: none; cursor: pointer;
         }
-        .card .info .btn-group .btn-4k { background: rgba(77, 150, 255, 0.8); }
+        .card .info .btn-group .btn-4k { background: rgba(77,150,255,0.8); }
         .card .info .btn-group .btn-4k:hover { background: #4d96ff; }
-        .card .info .btn-group .btn-1080p { background: rgba(108, 117, 125, 0.8); }
+        .card .info .btn-group .btn-1080p { background: rgba(108,117,125,0.8); }
         .card .info .btn-group .btn-1080p:hover { background: #6c757d; }
-        .card .info .btn-group .btn-download { background: rgba(108, 117, 125, 0.8); }
+        .card .info .btn-group .btn-download { background: rgba(108,117,125,0.8); }
         .card .info .btn-group .btn-download:hover { background: #6c757d; }
-
-        .loading, .empty {
-            text-align: center;
-            padding: 60px 0;
-            color: #aaa;
-            font-size: 1rem;
-            grid-column: 1 / -1;
-        }
-        .loading::after {
-            content: "";
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            margin-left: 10px;
-            border: 3px solid #2a2a2a;
-            border-top-color: #4d96ff;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            vertical-align: middle;
-        }
+        .loading, .empty { text-align: center; padding: 60px 0; color: #aaa; font-size: 1rem; grid-column: 1/-1; }
+        .loading::after { content: ""; display: inline-block; width: 20px; height: 20px; margin-left: 10px; border: 3px solid #2a2a2a; border-top-color: #4d96ff; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ===== 加载进度提示 ===== */
         #loadProgress {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(8px);
-            color: #fff;
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-size: 13px;
-            z-index: 1000;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-            border: 1px solid rgba(255,255,255,0.1);
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.75); backdrop-filter: blur(8px);
+            color: #fff; padding: 8px 20px; border-radius: 20px;
+            font-size: 13px; z-index: 1000; pointer-events: none;
+            transition: opacity 0.3s ease; border: 1px solid rgba(255,255,255,0.1);
         }
         #loadProgress.hidden { opacity: 0; }
 
-        /* ===== 模态框 ===== */
         .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.92);
-            backdrop-filter: blur(20px);
-            z-index: 9999;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            transition: opacity 0.4s ease;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.92);
+            backdrop-filter: blur(20px); z-index: 9999;
+            display: none; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.4s ease;
         }
         .modal-overlay.open { display: flex; opacity: 1; }
-        
-        .modal-box {
-            background: #0d0d0d;
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-            position: relative;
-            transform: scale(0.98);
-            transition: transform 0.4s ease;
-        }
+        .modal-box { background: #0d0d0d; width: 100vw; height: 100vh; overflow: hidden; position: relative; transform: scale(0.98); transition: transform 0.4s ease; }
         .modal-overlay.open .modal-box { transform: scale(1); }
-        
         .modal-image { width: 100%; height: 100%; background: #0b0b0b; position: relative; }
         .modal-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        
         .modal-image::after {
-            content: '';
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            height: 50%;
+            content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 50%;
             background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.6) 30%, rgba(0,0,0,0.2) 60%, transparent 100%);
-            pointer-events: none;
-            z-index: 1;
+            pointer-events: none; z-index: 1;
         }
-        
-        .modal-content {
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            padding: 30px 48px 40px;
-            z-index: 2;
-            max-height: 50%;
-            pointer-events: none;
-        }
+        .modal-content { position: absolute; bottom: 0; left: 0; right: 0; padding: 30px 48px 40px; z-index: 2; max-height: 50%; pointer-events: none; }
         .modal-content > * { pointer-events: auto; }
-        
-        .modal-scroll-desc {
-            max-height: 50vh;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,0.15) transparent;
-            margin-top: 8px;
-            padding-right: 8px;
-        }
+        .modal-scroll-desc { max-height: 50vh; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent; margin-top: 8px; padding-right: 8px; }
         .modal-scroll-desc::-webkit-scrollbar { width: 4px; }
         .modal-scroll-desc::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
-        
-        .modal-title {
-            font-size: 1.6rem;
-            font-weight: 700;
-            margin-bottom: 2px;
-            color: #fff;
-            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
-        }
+        .modal-title { font-size: 1.6rem; font-weight: 700; margin-bottom: 2px; color: #fff; text-shadow: 0 4px 20px rgba(0,0,0,0.8); }
         .modal-subtitle { display: none !important; }
-        .modal-desc {
-            font-size: 0.95rem;
-            line-height: 1.8;
-            color: #f0f0f0;
-            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
-        }
+        .modal-desc { font-size: 0.95rem; line-height: 1.8; color: #f0f0f0; text-shadow: 0 2px 12px rgba(0,0,0,0.6); }
         .modal-desc p { text-indent: 2em; margin: 0; padding: 0; line-height: 1.9; }
-        
         .modal-close {
-            position: fixed;
-            top: 24px; right: 28px;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: #fff;
-            width: 52px; height: 52px;
-            border-radius: 50%;
-            font-size: 2rem;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
+            position: fixed; top: 24px; right: 28px;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.15); color: #fff;
+            width: 52px; height: 52px; border-radius: 50%;
+            font-size: 2rem; cursor: pointer; transition: all 0.25s ease;
+            display: flex; align-items: center; justify-content: center; z-index: 100;
         }
-        .modal-close:hover { background: rgba(255, 255, 255, 0.2); transform: scale(1.06) rotate(90deg); }
-        
+        .modal-close:hover { background: rgba(255,255,255,0.2); transform: scale(1.06) rotate(90deg); }
+
         footer {
-            max-width: 1400px;
-            margin: 40px auto 0;
-            text-align: center;
-            padding: 20px 0 10px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            color: #aaa;
-            font-size: 0.85rem;
+            max-width: 1400px; margin: 40px auto 0;
+            text-align: center; padding: 20px 0 10px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: #aaa; font-size: 0.85rem;
         }
-        
-        /* ===== 移动端适配 ===== */
+
+        /* ===== 移动端 ===== */
         @media (max-width: 768px) {
-            .top-bar { margin-top: 70px; }
-            .filter-capsule {
-                flex-direction: column;
-                padding: 12px;
-                border-radius: 16px;
-                width: 100%;
-                gap: 12px;
-            }
-            .filter-item { width: 100%; justify-content: space-between; }
-            .filter-input { flex: 1; }
-            .btn-filter-reset { width: 100%; text-align: center; }
-            .stats { border-left: none; padding-left: 0; text-align: center; width: 100%; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px; }
-            
-            .top-nav { top: 12px; padding: 4px 8px; gap: 2px; }
-            .top-nav .nav-item { padding: 5px 12px; font-size: 0.72rem; }
-            
-            .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
-            
+            .top-nav { top: 12px; padding: 6px 8px; gap: 3px; }
+            .top-nav .nav-item { padding: 5px 10px; font-size: 0.72rem; }
+            .filter-label { display: none; }
+            .filter-input { width: 100px; height: 26px; font-size: 0.75rem; }
+            .btn-filter-reset { padding: 3px 8px; font-size: 0.72rem; }
+            .stats { padding-left: 6px; font-size: 0.7rem; }
+            .stats span { font-size: 0.78rem; }
+            .nav-divider { margin: 0 3px; height: 18px; }
+
+            .grid { margin-top: 130px; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 12px; }
             .modal-box { display: flex; flex-direction: column; }
             .modal-image { flex: 1; height: auto; }
             .modal-content { padding: 16px 20px 20px; }
@@ -529,7 +291,7 @@
             .date-popup { width: 92%; left: 4% !important; }
         }
         @media (max-width: 480px) {
-            .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+            .grid { grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap: 10px; }
             .card .info { padding: 8px 12px 12px; }
             .card .info .title { font-size: 0.8rem; }
             .card .info .btn-group .download-btn { font-size: 0.65rem; padding: 4px 8px; }
@@ -538,36 +300,32 @@
     </style>
 </head>
 <body>
-    <!-- 顶部悬浮导航（绝对定位，随页面滚动） -->
+    <!-- 方案1：导航 + 筛选合并为单个毛玻璃胶囊 -->
     <nav class="top-nav">
         <a href="/" class="nav-item">首页</a>
         <a href="/carousel.html" class="nav-item">精彩轮播</a>
         <a href="#" class="nav-item active">历史归档</a>
         <a href="/api.html" class="nav-item">API</a>
         <a href="/about.html" class="nav-item">关于</a>
-    </nav>
 
-    <!-- 紧凑型悬浮搜索栏 -->
-    <div class="top-bar">
-        <div class="filter-capsule">
-            <div class="filter-item">
-                <span class="filter-label">选择年月</span>
-                <input class="filter-input" id="monthInput" placeholder="请选择" readonly>
-            </div>
-            <button class="btn-filter-reset" onclick="resetAllFilters()">↺ 重置</button>
-            <div class="stats">共 <span id="totalCount">0</span> 张壁纸</div>
+        <div class="nav-divider"></div>
+
+        <div class="filter-item">
+            <span class="filter-label">年月</span>
+            <input class="filter-input" id="monthInput" placeholder="请选择" readonly>
         </div>
-    </div>
+        <button class="btn-filter-reset" onclick="resetAllFilters()">↺ 重置</button>
+        <div class="stats">共 <span id="totalCount">0</span> 张</div>
+    </nav>
 
     <div class="grid" id="grid">
         <div class="loading">加载壁纸数据中...</div>
     </div>
-    
+
     <footer>
         <p>数据来源：Bing 每日壁纸 · 永久归档 · 仅供个人欣赏</p>
     </footer>
 
-    <!-- 全屏模态框 -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-box">
             <button class="modal-close" id="modalClose">✕</button>
@@ -583,49 +341,32 @@
             </div>
         </div>
     </div>
-
     <div class="date-mask" id="mask">
         <div class="date-popup" id="popup"></div>
     </div>
-
     <div id="loadProgress" class="hidden">加载图片 0/0</div>
 
     <script>
-        // ===== 背景图控制 =====
         var USE_TODAY_BG = true;
         var FIXED_BG = 'https://image.lei5214.cc.cd/img/2026/08/10.jpg';
-
-        function setBackground(url) {
-            document.body.style.backgroundImage = 'url(' + url + ')';
-        }
-
+        function setBackground(url) { document.body.style.backgroundImage = 'url(' + url + ')'; }
         var JSON_BASE = 'json';
         var PATH_TODAY = JSON_BASE + '/today.json';
         var PATH_INDEX = JSON_BASE + '/index.json';
         var PATH_YEAR = function (year) { return JSON_BASE + '/year/zh.' + year + '.json'; };
-        var PATH_MONTH = function (year, month) {
-            return JSON_BASE + '/month/' + year + '/' + year + '-' + month + '.json';
-        };
-
+        var PATH_MONTH = function (year, month) { return JSON_BASE + '/month/' + year + '/' + year + '-' + month + '.json'; };
         var monthFileCache = {};
-        
+
         function fetchMonthFile(year, month) {
             var key = year + '-' + month;
             if (!monthFileCache[key]) {
                 var url = PATH_MONTH(year, month);
                 monthFileCache[key] = fetch(url)
-                    .then(function (resp) {
-                        if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                        return resp.json();
-                    })
-                    .catch(function (err) {
-                        delete monthFileCache[key];
-                        throw err;
-                    });
+                    .then(function (resp) { if (!resp.ok) throw new Error('HTTP ' + resp.status); return resp.json(); })
+                    .catch(function (err) { delete monthFileCache[key]; throw err; });
             }
             return monthFileCache[key];
         }
-
         function getTodayStr() {
             var now = new Date();
             var y = now.getFullYear();
@@ -633,119 +374,68 @@
             var d = String(now.getDate()).padStart(2, '0');
             return y + '-' + m + '-' + d;
         }
-
         async function loadTodayBg() {
             try {
                 var todayStr = getTodayStr();
                 var year = todayStr.substring(0, 4);
                 var month = todayStr.substring(5, 7);
                 var item = null;
-        
                 try {
                     var monthData = await fetchMonthFile(year, month);
                     if (Array.isArray(monthData) && monthData.length > 0) {
                         item = monthData.find(function (d) { return d.date === todayStr; });
                     }
                 } catch (e) {}
-        
                 if (!item) {
                     try {
                         var resp2 = await fetch(PATH_TODAY);
                         if (resp2.ok) {
                             var todayData = await resp2.json();
-                            if (Array.isArray(todayData) && todayData.length > 0) {
-                                item = todayData[0];
-                            } else if (todayData && typeof todayData === 'object') {
-                                item = todayData;
-                            }
+                            if (Array.isArray(todayData) && todayData.length > 0) item = todayData[0];
+                            else if (todayData && typeof todayData === 'object') item = todayData;
                         }
                     } catch (e) {}
                 }
-        
                 if (item && item.bing_url) {
                     var bgUrl = item.bing_url.replace('_UHD.jpg', '_1920x1080.jpg');
                     setBackground(bgUrl);
                 } else {
                     setBackground(FIXED_BG);
                 }
-            } catch (e) {
-                setBackground(FIXED_BG);
-            }
+            } catch (e) { setBackground(FIXED_BG); }
         }
+        if (USE_TODAY_BG) loadTodayBg(); else setBackground(FIXED_BG);
 
-        if (USE_TODAY_BG) {
-            loadTodayBg();
-        } else {
-            setBackground(FIXED_BG);
-        }
-
-        // ============================================================
-        // 图片加载管理器
-        // ============================================================
         var imageLoader = {
-            imgElements: [],
-            total: 0,
-            loaded: 0,
-            progressEl: null,
-            isCancelled: false,
-            isLoading: false,
-            loadTimeoutIds: [],
-            concurrency: 6,
-            maxRetries: 3,
-            retryDelay: 1000,
-
-            init: function () {
-                this.progressEl = document.getElementById('loadProgress');
-            },
-
+            imgElements: [], total: 0, loaded: 0, progressEl: null,
+            isCancelled: false, isLoading: false, loadTimeoutIds: [],
+            concurrency: 6, maxRetries: 3, retryDelay: 1000,
+            init: function () { this.progressEl = document.getElementById('loadProgress'); },
             cancelAll: function () {
-                this.isCancelled = true;
-                this.isLoading = false;
+                this.isCancelled = true; this.isLoading = false;
                 this.loadTimeoutIds.forEach(function (id) { clearTimeout(id); });
-                this.loadTimeoutIds = [];
-                this.hideProgress();
+                this.loadTimeoutIds = []; this.hideProgress();
             },
-
-            showProgress: function () {
-                if (this.progressEl) this.progressEl.classList.remove('hidden');
-            },
-
-            hideProgress: function () {
-                if (this.progressEl) this.progressEl.classList.add('hidden');
-            },
-
+            showProgress: function () { if (this.progressEl) this.progressEl.classList.remove('hidden'); },
+            hideProgress: function () { if (this.progressEl) this.progressEl.classList.add('hidden'); },
             updateProgress: function (loaded, total) {
                 if (this.progressEl) {
                     this.progressEl.textContent = '加载图片 ' + loaded + '/' + total;
-                    if (loaded === total) {
-                        var that = this;
-                        setTimeout(function () { that.hideProgress(); }, 800);
-                    }
+                    if (loaded === total) { var that = this; setTimeout(function () { that.hideProgress(); }, 800); }
                 }
             },
-
             loadImageWithRetry: function (imgElement, url, retryCount) {
-                var that = this;
-                retryCount = retryCount || 0;
-
+                var that = this; retryCount = retryCount || 0;
                 return new Promise(function (resolve, reject) {
-                    if (that.isCancelled) {
-                        reject(new Error('已取消'));
-                        return;
-                    }
-
+                    if (that.isCancelled) { reject(new Error('已取消')); return; }
                     var timeoutId = setTimeout(function () { reject(new Error('超时')); }, 15000);
                     that.loadTimeoutIds.push(timeoutId);
-
                     imgElement.src = url;
                     imgElement.onload = function () {
                         clearTimeout(timeoutId);
                         imgElement.classList.add('loaded');
                         var wrapper = imgElement.closest('.img-wrapper');
-                        if (wrapper) {
-                            var placeholder = wrapper.querySelector('.placeholder');
-                            if (placeholder) placeholder.style.display = 'none';
-                        }
+                        if (wrapper) { var p = wrapper.querySelector('.placeholder'); if (p) p.style.display = 'none'; }
                         resolve();
                     };
                     imgElement.onerror = function () {
@@ -755,10 +445,8 @@
                             var delay = that.retryDelay * (retryCount + 1);
                             var wrapper = imgElement.closest('.img-wrapper');
                             if (wrapper) {
-                                var placeholder = wrapper.querySelector('.placeholder');
-                                if (placeholder) {
-                                    placeholder.innerHTML = '<div style="text-align:center;color:#f39c12;font-size:12px;">🔄 重试 ' + nextRetry + '/' + that.maxRetries + '...</div>';
-                                }
+                                var p = wrapper.querySelector('.placeholder');
+                                if (p) p.innerHTML = '<div style="text-align:center;color:#f39c12;font-size:12px;">🔄 重试 ' + nextRetry + '/' + that.maxRetries + '...</div>';
                             }
                             setTimeout(function () {
                                 that.loadImageWithRetry(imgElement, url, nextRetry).then(resolve).catch(reject);
@@ -766,65 +454,37 @@
                         } else {
                             imgElement.style.display = 'none';
                             var wrapper = imgElement.closest('.img-wrapper');
-                            if (wrapper) {
-                                var placeholder = wrapper.querySelector('.placeholder');
-                                if (placeholder) placeholder.innerHTML = '<span class="error-text">❌ 加载失败</span>';
-                            }
+                            if (wrapper) { var p = wrapper.querySelector('.placeholder'); if (p) p.innerHTML = '<span class="error-text">❌ 加载失败</span>'; }
                             reject(new Error('加载失败'));
                         }
                     };
                 });
             },
-
-            loadImage: function (imgElement, url) {
-                return this.loadImageWithRetry(imgElement, url, 0);
-            },
-
+            loadImage: function (imgElement, url) { return this.loadImageWithRetry(imgElement, url, 0); },
             loadImagesBatch: function (imgList, onProgress) {
                 var that = this;
                 this.cancelAll();
-                this.isCancelled = false;
-                this.isLoading = true;
-                this.imgElements = imgList;
-                this.total = imgList.length;
-                this.loaded = 0;
+                this.isCancelled = false; this.isLoading = true;
+                this.imgElements = imgList; this.total = imgList.length; this.loaded = 0;
                 this.loadTimeoutIds = [];
                 var concurrency = this.concurrency;
-
-                if (this.total === 0) {
-                    this.isLoading = false;
-                    this.hideProgress();
-                    return Promise.resolve({ loaded: 0, total: 0 });
-                }
-
-                this.showProgress();
-                this.updateProgress(0, this.total);
-
+                if (this.total === 0) { this.isLoading = false; this.hideProgress(); return Promise.resolve({ loaded: 0, total: 0 }); }
+                this.showProgress(); this.updateProgress(0, this.total);
                 return new Promise(function (resolve) {
-                    var index = 0;
-                    var activeCount = 0;
-                    var completed = false;
-
+                    var index = 0, activeCount = 0, completed = false;
                     function loadNext() {
                         if (that.isCancelled || completed || !that.isLoading) return;
                         if (that.loaded >= that.total) {
-                            completed = true;
-                            that.isLoading = false;
+                            completed = true; that.isLoading = false;
                             that.updateProgress(that.total, that.total);
-                            resolve({ loaded: that.loaded, total: that.total });
-                            return;
+                            resolve({ loaded: that.loaded, total: that.total }); return;
                         }
                         if (index >= that.total || activeCount >= concurrency) return;
-
                         var item = that.imgElements[index];
-                        var img = item.element;
-                        var url = item.url;
-                        index++;
-                        activeCount++;
-
+                        var img = item.element, url = item.url;
+                        index++; activeCount++;
                         that.loadImage(img, url).then(function () {
-                            that.loaded++;
-                            activeCount--;
+                            that.loaded++; activeCount--;
                             that.updateProgress(that.loaded, that.total);
                             if (onProgress) onProgress(that.loaded, that.total);
                             loadNext();
@@ -834,46 +494,35 @@
                             if (onProgress) onProgress(that.loaded, that.total);
                             loadNext();
                         });
-
                         if (index < that.total && activeCount < concurrency) loadNext();
                     }
-
                     var batchSize = Math.min(concurrency, imgList.length);
                     for (var i = 0; i < batchSize; i++) loadNext();
                 });
             }
         };
 
-        // ============================================================
-        // URL 处理工具
-        // ============================================================
         function isJuemeiUrl(url) { return url ? url.includes('juemeibizhi.com') : false; }
         function isBingCdnUrl(url) { return url ? (url.includes('cn.bing.com') || url.includes('bing.com')) : false; }
         function isCdnBimgUrl(url) { return url ? url.includes('cdn.bimg.cc') : false; }
-
-        function getImageUrl(item) {
-            return item.bing_url || '';
-        }
-
+        function getImageUrl(item) { return item.bing_url || ''; }
         function get4kUrl(item) {
-            var bingUrl = item.bing_url || '';
-            if (isJuemeiUrl(bingUrl)) return bingUrl;
-            if (isCdnBimgUrl(bingUrl)) return bingUrl;
-            if (isBingCdnUrl(bingUrl) && bingUrl.includes('_UHD')) return bingUrl;
-            return bingUrl;
+            var u = item.bing_url || '';
+            if (isJuemeiUrl(u)) return u;
+            if (isCdnBimgUrl(u)) return u;
+            if (isBingCdnUrl(u) && u.includes('_UHD')) return u;
+            return u;
         }
-
         function get1080pUrl(item) {
-            var bingUrl = item.bing_url || '';
-            if (isJuemeiUrl(bingUrl)) return bingUrl;
-            if (isCdnBimgUrl(bingUrl)) return bingUrl;
-            if (isBingCdnUrl(bingUrl)) {
-                if (bingUrl.includes('_UHD')) return bingUrl.replace('_UHD', '_1920x1080');
-                if (bingUrl.includes('_1920x1080')) return bingUrl;
+            var u = item.bing_url || '';
+            if (isJuemeiUrl(u)) return u;
+            if (isCdnBimgUrl(u)) return u;
+            if (isBingCdnUrl(u)) {
+                if (u.includes('_UHD')) return u.replace('_UHD', '_1920x1080');
+                if (u.includes('_1920x1080')) return u;
             }
-            return bingUrl;
+            return u;
         }
-
         function getThumbnailUrl(item) {
             var url = item.bing_url || '';
             if (!url) return '';
@@ -883,7 +532,6 @@
             }
             return 'https://wsrv.nl/?url=' + encodeURIComponent(url) + '&w=384&h=216&fit=cover&output=webp&q=75';
         }
-
         function getImageType(item) {
             var url = item.bing_url || '';
             if (isJuemeiUrl(url)) return 'normal';
@@ -895,26 +543,16 @@
             return 'normal';
         }
 
-        // ============================================================
-        // 月份控件
-        // ============================================================
         (function () {
             var today = new Date();
             var currentYear = today.getFullYear();
             var currentMonth = today.getMonth() + 1;
-            var state = {
-                year: currentYear,
-                month: currentMonth,
-                view: 'month',
-                yearPage: 0
-            };
+            var state = { year: currentYear, month: currentMonth, view: 'month', yearPage: 0 };
             var mask = document.getElementById('mask');
             var popup = document.getElementById('popup');
             var monthInput = document.getElementById('monthInput');
-            var monthNames = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
-
+            var monthNames = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
             function closePopup() { mask.classList.remove('show'); }
-
             function openPopup() {
                 var rect = monthInput.getBoundingClientRect();
                 mask.classList.add('show');
@@ -922,37 +560,30 @@
                 var startYear = 2010;
                 var targetIdx = currentYear - startYear;
                 state.yearPage = Math.floor(targetIdx / 12);
-                popup.style.left = Math.max(0, rect.left - 100) + 'px'; // 稍微居中一点
+                popup.style.left = Math.max(0, rect.left - 100) + 'px';
                 popup.style.top = (rect.bottom + 10 + window.scrollY) + 'px';
                 renderPopup();
             }
-
             function renderPopup() {
                 var html = '';
-
                 if (state.view === 'year') {
                     var allYears = [];
                     var startYear = 2010;
                     var endYear = new Date().getFullYear() + 100;
                     for (var y = startYear; y <= endYear; y++) allYears.push(y);
-
                     var totalPages = Math.ceil(allYears.length / 12);
                     var currentPage = state.yearPage;
                     if (currentPage >= totalPages) currentPage = totalPages - 1;
                     if (currentPage < 0) currentPage = 0;
                     state.yearPage = currentPage;
-
                     var pageStart = currentPage * 12;
                     var pageEnd = Math.min(pageStart + 12, allYears.length);
                     var pageYears = allYears.slice(pageStart, pageEnd);
-
                     html += '<div class="popup-header">';
                     html += '<button class="popup-year-page-btn" id="yearPagePrev">‹</button>';
                     html += '<span class="popup-header-title">选择年份</span>';
                     html += '<button class="popup-year-page-btn" id="yearPageNext">›</button>';
-                    html += '</div>';
-                    html += '<div class="year-grid-popup">';
-
+                    html += '</div><div class="year-grid-popup">';
                     for (var i = 0; i < pageYears.length; i++) {
                         var y = pageYears[i];
                         var active = (y === state.year) ? 'active' : '';
@@ -961,14 +592,11 @@
                     }
                     html += '</div>';
                 } else {
-                    html += '<div class="popup-header">';
-                    html += '<div class="popup-year-nav" style="flex:1;justify-content:center;">';
+                    html += '<div class="popup-header"><div class="popup-year-nav" style="flex:1;justify-content:center;">';
                     html += '<button class="popup-year-btn" id="popupYearPrev">‹</button>';
                     html += '<span class="popup-year-text" id="popupYearText">' + state.year + '年</span>';
                     html += '<button class="popup-year-btn" id="popupYearNext">›</button>';
-                    html += '</div>';
-                    html += '</div>';
-                    html += '<div class="month-grid">';
+                    html += '</div></div><div class="month-grid">';
                     for (var i = 0; i < monthNames.length; i++) {
                         var num = i + 1;
                         var cls = (state.month === num) ? 'active' : '';
@@ -976,75 +604,57 @@
                     }
                     html += '</div>';
                 }
-
                 popup.innerHTML = html;
                 if (state.view === 'year') {
-                    document.getElementById('yearPagePrev').onclick = function (e) {
-                        e.stopPropagation();
-                        if (state.yearPage > 0) { state.yearPage--; renderPopup(); }
-                    };
+                    document.getElementById('yearPagePrev').onclick = function (e) { e.stopPropagation(); if (state.yearPage > 0) { state.yearPage--; renderPopup(); } };
                     document.getElementById('yearPageNext').onclick = function (e) {
                         e.stopPropagation();
                         var totalYears = new Date().getFullYear() + 100 - 2010 + 1;
                         var totalPages = Math.ceil(totalYears / 12);
                         if (state.yearPage < totalPages - 1) { state.yearPage++; renderPopup(); }
                     };
-
                     popup.querySelectorAll('.year-cell').forEach(function (el) {
                         el.onclick = function () {
                             if (this.classList.contains('disabled')) return;
                             var year = parseInt(this.dataset.year);
-                            state.year = year;
-                            state.view = 'month';
-                            renderPopup();
-                            updateMonthInput();
+                            state.year = year; state.view = 'month'; renderPopup(); updateMonthInput();
                         };
                     });
                 } else {
                     document.getElementById('popupYearText').onclick = function () {
                         state.view = 'year';
                         var startYear = 2010;
-                        var targetIdx = state.year - startYear;
-                        state.yearPage = Math.floor(targetIdx / 12);
+                        state.yearPage = Math.floor((state.year - startYear) / 12);
                         renderPopup();
                     };
-
                     document.getElementById('popupYearPrev').onclick = function (e) {
-                        e.stopPropagation();
-                        state.year--;
+                        e.stopPropagation(); state.year--;
                         document.getElementById('popupYearText').textContent = state.year + '年';
-                        updateMonthInput();
-                        renderPopup();
+                        updateMonthInput(); renderPopup();
                     };
                     document.getElementById('popupYearNext').onclick = function (e) {
                         e.stopPropagation();
                         if ((state.year + 1) > currentYear) return;
                         state.year++;
                         document.getElementById('popupYearText').textContent = state.year + '年';
-                        updateMonthInput();
-                        renderPopup();
+                        updateMonthInput(); renderPopup();
                     };
                     popup.querySelectorAll('.month-cell').forEach(function (el) {
                         el.onclick = function () {
                             state.month = parseInt(el.dataset.val);
                             popup.querySelectorAll('.month-cell').forEach(function (c) { c.classList.remove('active'); });
                             el.classList.add('active');
-                            updateMonthInput();
-                            loadData();
-                            closePopup();
+                            updateMonthInput(); loadData(); closePopup();
                         };
                     });
                 }
             }
-
             function updateMonthInput() {
                 var monthStr = String(state.month).padStart(2, '0');
                 monthInput.value = state.year + ' - ' + monthStr;
             }
-
             monthInput.onclick = function () { openPopup(); };
             mask.onclick = function (e) { if (e.target === mask) closePopup(); };
-
             window.resetAllFilters = function () {
                 var now = new Date();
                 state.year = now.getFullYear();
@@ -1052,32 +662,23 @@
                 monthInput.value = '';
                 loadData();
             };
-
             function loadData() {
                 var year = state.year;
                 var month = String(state.month).padStart(2, '0');
                 loadMonthData(year, month);
             }
-
             monthInput.placeholder = '请选择';
-            window.addEventListener('DOMContentLoaded', function () {
-                setTimeout(function () { loadData(); }, 100);
-            });
-
+            window.addEventListener('DOMContentLoaded', function () { setTimeout(function () { loadData(); }, 100); });
             window.filterState = {
                 getYear: function () { return state.year; },
                 getMonth: function () { return state.month; }
             };
         })();
 
-        // ============================================================
-        // 工具函数
-        // ============================================================
         function getMonthFromDate(dateStr) {
             if (dateStr && dateStr.length >= 7) return dateStr.substring(5, 7);
             return '未知';
         }
-
         function formatTitle(item) {
             var mainTitle = item.subtitle || '';
             var subTitle = item.title || '';
@@ -1086,15 +687,10 @@
             if (subTitle) return subTitle;
             return '壁纸';
         }
-
         var DOWNLOAD_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
 
-        // ============================================================
-        // 数据加载
-        // ============================================================
         var loadedData = {};
         var allAvailableYears = [];
-
         async function loadIndex() {
             try {
                 var resp = await fetch(PATH_INDEX);
@@ -1106,36 +702,22 @@
                     return true;
                 }
                 return false;
-            } catch (e) {
-                return false;
-            }
+            } catch (e) { return false; }
         }
-
         async function loadYearData(year) {
             if (loadedData[year]) return loadedData[year];
             try {
                 var resp = await fetch(PATH_YEAR(year));
                 if (!resp.ok) return [];
                 var data = await resp.json();
-                if (Array.isArray(data) && data.length > 0) {
-                    loadedData[year] = data;
-                    return data;
-                }
+                if (Array.isArray(data) && data.length > 0) { loadedData[year] = data; return data; }
                 return [];
-            } catch (e) {
-                return [];
-            }
+            } catch (e) { return []; }
         }
 
-        // ============================================================
-        // 筛选与渲染
-        // ============================================================
         function filterImagesByMonth(images, month) {
             if (!images || images.length === 0) return [];
-            return images.filter(function (img) {
-                var m = getMonthFromDate(img.date);
-                return m === month;
-            });
+            return images.filter(function (img) { return getMonthFromDate(img.date) === month; });
         }
 
         function renderGrid(images) {
@@ -1143,46 +725,35 @@
             var totalCount = document.getElementById('totalCount');
             if (!images || images.length === 0) {
                 grid.innerHTML = '<div class="empty">😅 没有找到匹配的壁纸</div>';
-                totalCount.textContent = '0';
-                return;
+                totalCount.textContent = '0'; return;
             }
             totalCount.textContent = images.length;
-
             imageLoader.cancelAll();
-
             var html = '';
             var loadQueue = [];
-
             for (var i = 0; i < images.length; i++) {
                 var img = images[i];
                 var dateStr = img.date || '';
                 var displayTitle = formatTitle(img);
-
                 var imageUrl = getImageUrl(img);
                 if (isBingCdnUrl(img.bing_url)) imageUrl = getThumbnailUrl(img);
-
                 var imgType = getImageType(img);
                 var isUhd = (imgType === 'uhd');
                 var isFhd = (imgType === 'fhd');
                 var uhdUrl = get4kUrl(img);
                 var fhdUrl = get1080pUrl(img);
                 var normalUrl = img.bing_url || img.local_path || '';
-                if (normalUrl && !normalUrl.startsWith('http') && normalUrl.startsWith('/')) {
-                    normalUrl = window.location.origin + normalUrl;
-                }
+                if (normalUrl && !normalUrl.startsWith('http') && normalUrl.startsWith('/')) normalUrl = window.location.origin + normalUrl;
                 var escapedData = encodeURIComponent(JSON.stringify(img));
                 var imgId = 'img-' + i + '-' + Date.now();
-
                 html += '<div class="card" data-item="' + escapedData + '">';
                 html += '<div class="img-wrapper" id="wrapper-' + imgId + '">';
                 html += '<div class="placeholder"><div class="spinner"></div></div>';
                 html += '<img id="' + imgId + '" data-src="' + imageUrl + '" alt="' + displayTitle + '" loading="lazy" />';
-                html += '</div>';
-                html += '<div class="info">';
+                html += '</div><div class="info">';
                 html += '<div class="date">📅 ' + dateStr + '</div>';
                 html += '<div class="title">' + displayTitle + '</div>';
                 html += '<div class="btn-group">';
-
                 if (isUhd) {
                     html += '<a href="' + uhdUrl + '" class="download-btn btn-4k" target="_blank" onclick="event.stopPropagation();">' + DOWNLOAD_SVG + ' 4K/UHD</a>';
                     html += '<a href="' + fhdUrl + '" class="download-btn btn-1080p" target="_blank" onclick="event.stopPropagation();">' + DOWNLOAD_SVG + ' 1080P</a>';
@@ -1191,21 +762,16 @@
                 } else {
                     html += '<a href="' + normalUrl + '" class="download-btn btn-download" target="_blank" onclick="event.stopPropagation();">' + DOWNLOAD_SVG + ' 下载图片</a>';
                 }
-
                 html += '</div></div></div>';
-
                 loadQueue.push({ id: imgId, url: imageUrl });
             }
             grid.innerHTML = html;
-
             var imgElements = [];
             loadQueue.forEach(function (item) {
                 var el = document.getElementById(item.id);
                 if (el) imgElements.push({ element: el, url: item.url });
             });
-
             if (imgElements.length > 0) imageLoader.loadImagesBatch(imgElements);
-
             document.querySelectorAll('.card').forEach(function (el) {
                 el.addEventListener('click', function (e) {
                     if (e.target.closest('a')) return;
@@ -1221,40 +787,26 @@
             });
         }
 
-        // ============================================================
-        // 模态框
-        // ============================================================
         function openModal(item) {
             var overlay = document.getElementById('modalOverlay');
             var displayTitle = formatTitle(item);
             document.getElementById('modalTitle').textContent = displayTitle;
             var img = document.getElementById('modalImg');
-            var modalUrl = get1080pUrl(item);
-            img.src = modalUrl;
+            img.src = get1080pUrl(item);
             img.alt = displayTitle;
             document.getElementById('modalSubtitle').style.display = 'none';
-            var desc = item.description || '';
-            desc = desc.replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/<br\s*\/?>/gi, '\n');
+            var desc = (item.description || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/<br\s*\/?>/gi, '\n');
             var paragraphs = desc.split('\n').map(function (p) { return p.trim(); }).filter(function (p) { return p !== ''; });
-            var descHtml = paragraphs.map(function (p) { return '<p>' + p + '</p>'; }).join('');
-            document.getElementById('modalDesc').innerHTML = descHtml;
+            document.getElementById('modalDesc').innerHTML = paragraphs.map(function (p) { return '<p>' + p + '</p>'; }).join('');
             overlay.classList.add('open');
             document.body.style.overflow = 'hidden';
         }
-
         function closeModal() {
             var overlay = document.getElementById('modalOverlay');
-            if (overlay) {
-                overlay.classList.remove('open');
-                document.body.style.overflow = '';
-            }
+            if (overlay) { overlay.classList.remove('open'); document.body.style.overflow = ''; }
         }
-
         document.getElementById('modalClose').addEventListener('click', closeModal);
-        document.getElementById('modalOverlay').addEventListener('click', function (e) {
-            if (e.target === this) closeModal();
-        });
-
+        document.getElementById('modalOverlay').addEventListener('click', function (e) { if (e.target === this) closeModal(); });
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 closeModal();
@@ -1263,38 +815,23 @@
             }
         });
 
-        // ============================================================
-        // 加载指定年月数据
-        // ============================================================
         async function loadMonthData(year, monthStr) {
             const grid = document.getElementById('grid');
             grid.innerHTML = '<div class="loading">加载壁纸数据中...</div>';
-        
             imageLoader.cancelAll();
             let monthData = null;
-        
             try {
                 const data = await fetchMonthFile(year, monthStr);
-                if (Array.isArray(data) && data.length > 0) {
-                    monthData = data;
-                }
+                if (Array.isArray(data) && data.length > 0) monthData = data;
             } catch (e) {}
-        
             if (!monthData) {
                 const yearData = await loadYearData(year);
-                if (!yearData || yearData.length === 0) {
-                    renderGrid([]);
-                    return;
-                }
+                if (!yearData || yearData.length === 0) { renderGrid([]); return; }
                 monthData = filterImagesByMonth(yearData, monthStr);
             }
-        
             renderGrid(monthData);
         }
 
-        // ============================================================
-        // 页面初始化
-        // ============================================================
         window.addEventListener('DOMContentLoaded', async function () {
             await loadIndex();
             imageLoader.init();
