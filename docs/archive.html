@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>壁纸归档 · 光影回顾（方案1：导航+筛选合并）</title>
+    <title>壁纸归档 · 光影回顾</title>
     <link rel="icon" href="/favicon.avif">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -175,14 +175,17 @@
         .year-cell.disabled:hover { background: transparent; color: #999; }
         .year-cell.empty { cursor: default; opacity: 0; pointer-events: none; }
 
-        /* ===== 卡片网格（上边距加大，给顶部胶囊留位） ===== */
+        /* ===== 卡片网格：桌面固定 6 列，窄屏自动降级 ===== */
         .grid {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 100px auto 0;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 18px;
         }
+        @media (max-width: 1400px) { .grid { grid-template-columns: repeat(5, 1fr); } }
+        @media (max-width: 1100px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+        @media (max-width: 820px)  { .grid { grid-template-columns: repeat(3, 1fr); } }
         .card {
             background: rgba(22,22,22,0.5);
             backdrop-filter: blur(4px);
@@ -282,7 +285,7 @@
             .stats span { font-size: 0.78rem; }
             .nav-divider { margin: 0 3px; height: 18px; }
 
-            .grid { margin-top: 130px; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 12px; }
+            .grid { margin-top: 130px; grid-template-columns: repeat(2, 1fr); gap: 12px; }
             .modal-box { display: flex; flex-direction: column; }
             .modal-image { flex: 1; height: auto; }
             .modal-content { padding: 16px 20px 20px; }
@@ -291,7 +294,7 @@
             .date-popup { width: 92%; left: 4% !important; }
         }
         @media (max-width: 480px) {
-            .grid { grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap: 10px; }
+            .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
             .card .info { padding: 8px 12px 12px; }
             .card .info .title { font-size: 0.8rem; }
             .card .info .btn-group .download-btn { font-size: 0.65rem; padding: 4px 8px; }
@@ -311,10 +314,10 @@
         <div class="nav-divider"></div>
 
         <div class="filter-item">
-            <span class="filter-label">年月</span>
+            <span class="filter-label">选择年月</span>
             <input class="filter-input" id="monthInput" placeholder="请选择" readonly>
         </div>
-        <button class="btn-filter-reset" onclick="resetAllFilters()">↺ 重置</button>
+        <button class="btn-filter-reset" onclick="resetAllFilters()">↺ 重置筛选</button>
         <div class="stats">共 <span id="totalCount">0</span> 张</div>
     </nav>
 
