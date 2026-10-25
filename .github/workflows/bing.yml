@@ -1,9 +1,9 @@
 name: Bing Wallpaper
 
 on:
-  schedule:
+  #schedule:
     # UTC 16:00 = 北京时间 00:00
-    - cron: '0 16 * * *'
+   # - cron: '0 16 * * *'
   workflow_dispatch:
 
 permissions:
