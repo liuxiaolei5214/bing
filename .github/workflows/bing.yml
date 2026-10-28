@@ -60,8 +60,8 @@ jobs:
           const title = "🎉 Bing壁纸 · 提取数据";
           const desc ="历史归档：" + (process.env.HISTORY_COUNT || 0) + " 张" + 
                       "\n当前描述：" + (process.env.DESC_LEN || 0) + " 字符" +
-                      "\n当前副标：" + (process.env.TITLE || "") + 
-                      "\n当前主标：" + (process.env.SUBTITLE || "");
+                      "\n当前主标：" + (process.env.SUBTITLE || "") + 
+                      "\n当前副标：" + (process.env.TITLE || "");
           const payload = JSON.stringify({
             msgtype: "news",
             news: { articles: [{
