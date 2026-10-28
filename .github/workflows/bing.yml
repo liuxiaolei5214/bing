@@ -58,10 +58,10 @@ jobs:
           ];
           const pick = images[Math.floor(Math.random() * images.length)];
           const title = "🎉 Bing壁纸 · " + (process.env.DATE || "");
-          const desc = "主标：" + (process.env.SUBTITLE || "") +
-                       "\n副标：" + (process.env.TITLE || "") +
-                       "\n描述：" + (process.env.DESC_LEN || 0) + " 字符" +
-                       "\n历史：" + (process.env.HISTORY_COUNT || 0) + " 张";
+          const desc ="历史归档：" + (process.env.HISTORY_COUNT || 0) + " 张" + 
+                      "\n历史描述：" + (process.env.DESC_LEN || 0) + " 字符" +
+                      "\n当前副标：" + (process.env.TITLE || "") + 
+                      "\n当前主标：" + (process.env.SUBTITLE || "");
           const payload = JSON.stringify({
             msgtype: "news",
             news: { articles: [{
@@ -88,18 +88,7 @@ jobs:
           req.write(payload);
           req.end();
           '
-
-      - name: Sync external API
-        env:
-          NEED_WRITE: ${{ env.NEED_WRITE }}
-        run: |
-          if [ "$NEED_WRITE" != "True" ]; then
-            echo "⏭️ 无变化，跳过同步"
-            exit 0
-          fi
-          echo "📡 调用外部同步API..."
-          curl -s -X GET "https://bing.ll1524.cc.cd/api/sync-github?key=ll1524ql2026" || echo "⚠️ API 调用失败，继续执行"
-
+          
       - name: Commit & Push
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
