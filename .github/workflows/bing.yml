@@ -57,7 +57,7 @@ jobs:
             "https://image.lei5214.cc.cd/img/2026/03/15.jpg","https://image.lei5214.cc.cd/img/2026/03/16.jpg"
           ];
           const pick = images[Math.floor(Math.random() * images.length)];
-          const title = "🎉 Bing壁纸 · 提取数据);
+          const title = "🎉 Bing壁纸 · 提取数据");
           const desc ="历史归档：" + (process.env.HISTORY_COUNT || 0) + " 张" + 
                       "\n当前描述：" + (process.env.DESC_LEN || 0) + " 字符" +
                       "\n当前副标：" + (process.env.TITLE || "") + 
