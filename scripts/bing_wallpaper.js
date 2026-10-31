@@ -2,10 +2,16 @@
 // bing_wallpaper.js
 // Bing 壁纸 + 百科抓取（GitHub Actions 版）
 // 纯 HTTP + 随机 MUID/GUID
+//
+// 数据流：
+//   bing_wallpaper.json = 青龙推送（Actions 只读 + 补缺，不覆盖已有字段）
+//   github.json         = Actions 自抓对照（每次覆盖为最新 14 天）
+//
 // 输出：
 //   docs/json/today.json
 //   docs/json/later.json
 //   docs/json/bing_wallpaper.json
+//   docs/json/github.json
 //   docs/json/history.json
 //   docs/json/index.json
 //   docs/json/year/zh.YYYY.json
@@ -40,6 +46,7 @@ const CONFIG = {
 
   JSON_DIR: path.join(__dirname, '..', 'docs', 'json'),
   FULL_JSON_NAME: "bing_wallpaper.json",
+  GITHUB_JSON_NAME: "github.json",
   TODAY_JSON_NAME: "today.json",
   LATER_JSON_NAME: "later.json",
 };
@@ -124,6 +131,18 @@ function randomGuid() {
 
 function sleep(ms) {
   return new Promise(r => setTimeout(r, ms));
+}
+
+// ===================== 安全读取 JSON 数组 =====================
+function readJsonArray(filePath) {
+  if (!fs.existsSync(filePath)) return [];
+  try {
+    const arr = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) {
+    writeLog(`⚠️ 读取失败（视为空）: ${filePath} — ${e.message}`);
+    return [];
+  }
 }
 
 // ===================== HTTP 请求封装 =====================
@@ -241,44 +260,74 @@ async function crawlBingWallpaperBase() {
   return resultArr;
 }
 
-// ===================== ✅ 新增：读取本地已有数据 + 全字段对比 =====================
-// 只读 bing_wallpaper.json（14 天窗口），不读 year 文件
-// 返回 { localMap, diffReport }
-function loadAndCompareLocal(apiList, fullJsonPath) {
-  const localMap = new Map();
+// ===================== 读取两个数据源 =====================
+// 返回 { bingMap, githubMap }
+function loadDataSources(fullJsonPath, githubJsonPath) {
+  const bingArr = readJsonArray(fullJsonPath);
+  const githubArr = readJsonArray(githubJsonPath);
 
-  if (fs.existsSync(fullJsonPath)) {
-    try {
-      const arr = JSON.parse(fs.readFileSync(fullJsonPath, 'utf8'));
-      if (Array.isArray(arr)) {
-        arr.forEach(it => { if (it.date) localMap.set(it.date, it); });
-      }
-    } catch (e) {
-      writeLog(`⚠️ 读取 bing_wallpaper.json 失败: ${e.message}`);
-    }
-  }
+  const bingMap = new Map();
+  bingArr.forEach(it => { if (it && it.date) bingMap.set(it.date, it); });
 
-  const FIELDS = ['title', 'subtitle', 'description', 'bing_url'];
-  const same = [];
-  const onlyNew = [];
-  const onlyLocal = [];
-  const changed = [];
-  const apiDates = new Set();
+  const githubMap = new Map();
+  githubArr.forEach(it => { if (it && it.date) githubMap.set(it.date, it); });
+
+  return { bingMap, githubMap };
+}
+
+// ===================== 判断需要抓百科的日期 =====================
+// 规则：API 14天中，bing_wallpaper.json 和 github.json 都没有 description 的日期才需要抓
+function computeNeedFetchDates(apiList, bingMap, githubMap) {
+  const needFetch = [];
+  const skippedByBing = [];
+  const skippedByGithub = [];
 
   for (const apiItem of apiList) {
-    apiDates.add(apiItem.date);
-    const localItem = localMap.get(apiItem.date);
+    const bingItem = bingMap.get(apiItem.date);
+    const ghItem = githubMap.get(apiItem.date);
 
-    if (!localItem) {
-      onlyNew.push(apiItem.date);
+    if (hasDescription(bingItem)) {
+      skippedByBing.push(apiItem.date);
+      continue;
+    }
+    if (hasDescription(ghItem)) {
+      skippedByGithub.push(apiItem.date);
+      continue;
+    }
+    needFetch.push(apiItem.date);
+  }
+
+  return { needFetch, skippedByBing, skippedByGithub };
+}
+
+// ===================== 全字段对比 github vs bing =====================
+// 返回 { same, onlyGithub, onlyBing, changed }
+function compareGithubVsBing(githubArr, bingArr) {
+  const FIELDS = ['title', 'subtitle', 'description', 'bing_url'];
+
+  const githubMap = new Map();
+  githubArr.forEach(it => { if (it && it.date) githubMap.set(it.date, it); });
+
+  const bingMap = new Map();
+  bingArr.forEach(it => { if (it && it.date) bingMap.set(it.date, it); });
+
+  const same = [];
+  const onlyGithub = [];
+  const onlyBing = [];
+  const changed = [];
+
+  for (const [date, ghItem] of githubMap.entries()) {
+    const bingItem = bingMap.get(date);
+    if (!bingItem) {
+      onlyGithub.push(date);
       continue;
     }
 
     let isSame = true;
     const diffFields = [];
     for (const f of FIELDS) {
-      const a = (apiItem[f] || '').toString().trim();
-      const b = (localItem[f] || '').toString().trim();
+      const a = (ghItem[f] || '').toString().trim();
+      const b = (bingItem[f] || '').toString().trim();
       if (a !== b) {
         isSame = false;
         diffFields.push(f);
@@ -286,19 +335,27 @@ function loadAndCompareLocal(apiList, fullJsonPath) {
     }
 
     if (isSame) {
-      same.push(apiItem.date);
+      same.push(date);
     } else {
-      changed.push({ date: apiItem.date, fields: diffFields, local: localItem, api: apiItem });
+      changed.push({
+        date,
+        fields: diffFields,
+        github: ghItem,
+        bing: bingItem
+      });
     }
   }
 
-  for (const [date, item] of localMap.entries()) {
-    if (!apiDates.has(date)) {
-      onlyLocal.push({ date, item });
-    }
+  for (const date of bingMap.keys()) {
+    if (!githubMap.has(date)) onlyBing.push(date);
   }
 
-  return { localMap, diffReport: { same, onlyLocal, onlyNew, changed } };
+  same.sort();
+  onlyGithub.sort();
+  onlyBing.sort();
+  changed.sort((a, b) => b.date.localeCompare(a.date));
+
+  return { same, onlyGithub, onlyBing, changed };
 }
 
 // ===================== 百科 HTML 解析 =====================
@@ -436,20 +493,17 @@ async function fetchEncyclopedia(backstageUrl) {
   return { subtitle: '', description: '' };
 }
 
-// ===================== 批量处理百科 =====================
-async function attachEncyclopedia(baseList, existDateSet) {
-  const needFetchList = baseList.filter(item => !existDateSet.has(item.date));
-  const skipList = baseList.filter(item => existDateSet.has(item.date));
-  writeLog(`📊 本次待处理统计：`);
-  writeLog(`已有描述跳过: ${skipList.length} 条`);
-  writeLog(`需要抓取百科: ${needFetchList.length} 条`);
+// ===================== 按 needFetch 列表抓百科，填充到 apiList =====================
+async function attachEncyclopedia(apiList, needFetchDates) {
+  const needSet = new Set(needFetchDates);
+  const needFetchList = apiList.filter(item => needSet.has(item.date));
+  writeLog(`📊 本次待抓百科：${needFetchList.length} 条`);
 
   if (needFetchList.length === 0) {
-    writeLog(`✅ 无新增条目，跳过抓取`);
-    return baseList;
+    writeLog(`✅ 无需抓取百科`);
+    return apiList;
   }
 
-  const resultList = [];
   for (let idx = 0; idx < needFetchList.length; idx++) {
     const item = needFetchList[idx];
     writeLog(`===== [${idx+1}/${needFetchList.length}] 处理日期【${item.date}】 =====`);
@@ -459,7 +513,6 @@ async function attachEncyclopedia(baseList, existDateSet) {
     if (!item.BackstageUrl) {
       writeLog(`  ⚠️ 无搜索页地址，跳过`);
       item.description = '';
-      resultList.push(item);
       continue;
     }
 
@@ -468,12 +521,11 @@ async function attachEncyclopedia(baseList, existDateSet) {
     if (enc.subtitle && !item.subtitle) {
       item.subtitle = enc.subtitle;
     }
-    resultList.push(item);
 
     if (idx < needFetchList.length - 1) await sleep(1000);
   }
 
-  return [...skipList, ...resultList];
+  return apiList;
 }
 
 // ===================== 年份文件 upsert（带保护） =====================
@@ -666,137 +718,158 @@ function generateIndex(yearDir, jsonDir, logs) {
 
     log(`==================== 必应壁纸+百科（GitHub Actions 版）启动 ====================`);
 
-    // 1. 拉取 API 基础列表
-    const wallBaseData = await crawlBingWallpaperBase();
-    if (!wallBaseData.length) {
+    const fullJsonPath   = path.join(JSON_DIR, CONFIG.FULL_JSON_NAME);   // 青龙推的
+    const githubJsonPath = path.join(JSON_DIR, CONFIG.GITHUB_JSON_NAME); // Actions 抓的
+
+    // ========== 1. 拉取 API 14 天列表 ==========
+    const apiList = await crawlBingWallpaperBase();
+    if (!apiList.length) {
       log("❌ 未采集到任何数据，退出");
       process.exit(1);
     }
+    log(`📊 API 返回: ${apiList.length} 条（${apiList[apiList.length-1].date} ~ ${apiList[0].date}）`);
 
-    // 2. ✅ 读取本地已有数据（青龙已推送的 bing_wallpaper.json）+ 全字段对比
-    const fullJsonOutputPath = path.join(JSON_DIR, CONFIG.FULL_JSON_NAME);
-    const { localMap, diffReport } = loadAndCompareLocal(wallBaseData, fullJsonOutputPath);
+    // ========== 2. 读取两个数据源 ==========
+    const { bingMap, githubMap } = loadDataSources(fullJsonPath, githubJsonPath);
+    log(`📊 bing_wallpaper.json: ${bingMap.size} 条`);
+    log(`📊 github.json:         ${githubMap.size} 条`);
 
-    log(`\n==================== 本地数据对比报告 ====================`);
-    log(`📊 API 新抓: ${wallBaseData.length} 条`);
-    log(`📊 本地已有: ${localMap.size} 条`);
-    log(`✅ 完全一致: ${diffReport.same.length} 条`);
-    log(`🆕 仅 API 有: ${diffReport.onlyNew.length} 条`);
-    log(`🗑️ 仅本地有: ${diffReport.onlyLocal.length} 条`);
-    log(`🔀 有差异: ${diffReport.changed.length} 条`);
+    // ========== 3. 判断需要抓百科的日期 ==========
+    // 规则：API 14天中，bing 和 github 都没有 description 的日期才需要抓
+    const { needFetch, skippedByBing, skippedByGithub } =
+      computeNeedFetchDates(apiList, bingMap, githubMap);
 
-    if (diffReport.onlyNew.length > 0) {
-      log(`\n🆕 仅 API 有（本地缺这天）: ${diffReport.onlyNew.join(', ')}`);
+    log(`\n==================== 抓取计划 ====================`);
+    log(`✅ 已有 bing 描述（跳过）: ${skippedByBing.length} 条`);
+    log(`✅ 已有 github 描述（跳过）: ${skippedByGithub.length} 条`);
+    log(`🔍 需要抓百科: ${needFetch.length} 条 ${needFetch.length > 0 ? '→ ' + needFetch.join(', ') : ''}`);
+
+    // ========== 4. 抓百科 → 填充到 apiList ==========
+    await attachEncyclopedia(apiList, needFetch);
+
+    // ========== 5. 写 github.json（14 天滚动覆盖） ==========
+    const githubLimited = apiList
+      .slice()
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, CONFIG.KEEP_DAYS);
+
+    const githubCleaned = cleanBackstageUrl(githubLimited);
+    fs.writeFileSync(githubJsonPath, JSON.stringify(githubCleaned, null, 2), 'utf8');
+    log(`\n✅ github.json 已写入: ${githubJsonPath} (${githubCleaned.length} 条)`);
+
+    // ========== 6. 对比 github.json vs bing_wallpaper.json ==========
+    const githubArrForCompare = readJsonArray(githubJsonPath);
+    const bingArrForCompare   = readJsonArray(fullJsonPath);
+
+    const { same, onlyGithub, onlyBing, changed } =
+      compareGithubVsBing(githubArrForCompare, bingArrForCompare);
+
+    log(`\n==================== 一致性对比（github.json vs bing_wallpaper.json） ====================`);
+    log(`📊 github.json:         ${githubArrForCompare.length} 条`);
+    log(`📊 bing_wallpaper.json: ${bingArrForCompare.length} 条`);
+    log(`✅ 完全一致:   ${same.length} 条`);
+    log(`🆕 仅 github:  ${onlyGithub.length} 条`);
+    log(`🗑️ 仅 bing:    ${onlyBing.length} 条`);
+    log(`🔀 有差异:     ${changed.length} 条`);
+
+    if (onlyGithub.length > 0) {
+      log(`\n🆕 仅 github 有的日期（bing 缺这天）: ${onlyGithub.join(', ')}`);
     }
-    if (diffReport.onlyLocal.length > 0) {
-      log(`\n🗑️ 仅本地有（API 没返回这天）: ${diffReport.onlyLocal.map(x => x.date).join(', ')}`);
+    if (onlyBing.length > 0) {
+      log(`\n🗑️ 仅 bing 有的日期（github 缺这天）: ${onlyBing.join(', ')}`);
     }
 
-    if (diffReport.changed.length > 0) {
+    if (changed.length > 0) {
       log(`\n----- 差异明细（前 20 条） -----`);
-      diffReport.changed.slice(0, 20).forEach(c => {
+      changed.slice(0, 20).forEach(c => {
         log(`  [${c.date}] 差异字段: ${c.fields.join(', ')}`);
         for (const f of c.fields) {
-          const lv = (c.local[f] || '').toString().slice(0, 50);
-          const av = (c.api[f] || '').toString().slice(0, 50);
+          const bv = (c.bing[f] || '').toString().slice(0, 50);
+          const gv = (c.github[f] || '').toString().slice(0, 50);
           log(`    ${f}:`);
-          log(`      本地="${lv}${lv.length >= 50 ? '...' : ''}"`);
-          log(`      API ="${av}${av.length >= 50 ? '...' : ''}"`);
+          log(`      bing  ="${bv}${bv.length >= 50 ? '...' : ''}"`);
+          log(`      github="${gv}${gv.length >= 50 ? '...' : ''}"`);
         }
       });
-      if (diffReport.changed.length > 20) {
-        log(`  ... 还有 ${diffReport.changed.length - 20} 条差异未显示`);
+      if (changed.length > 20) {
+        log(`  ... 还有 ${changed.length - 20} 条差异未显示`);
       }
     }
 
-    // 3. ✅ 决策：本地已有 description 的日期 → 跳过抓百科（以本地为准）
-    const existDateSet = new Set(
-      Array.from(localMap.entries())
-        .filter(([_, it]) => hasDescription(it))
-        .map(([date, _]) => date)
-    );
-    log(`\n📊 本地已有描述的日期: ${existDateSet.size} 条（将跳过抓取）`);
+    // ========== 7. 补缺：github.json 补进 bing_wallpaper.json ==========
+    // 规则：
+    //   - bing 已有的日期：完全不覆盖（青龙绝对权威，哪怕短）
+    //   - bing 缺的日期：用 github 的数据补进去
+    log(`\n==================== 补缺到 bing_wallpaper.json ====================`);
+    const bingFinalMap = new Map(bingMap);
+    let addedFromGithub = 0;
 
-    const fullNewList = await attachEncyclopedia(wallBaseData, existDateSet);
-
-    // 4. ✅ 合并：以本地为准
-    //    - 本地已有 → 完全不覆盖（不管 API 抓到什么）
-    //    - 本地没有 → 用 API 新抓的补
-    const dateMap = new Map();
-    for (const [date, item] of localMap.entries()) {
-      dateMap.set(date, item);
-    }
-
-    let localKept = 0;
-    let apiAdded = 0;
-    for (const item of fullNewList) {
-      if (dateMap.has(item.date)) {
-        localKept++;
-        continue;
+    for (const ghItem of githubArrForCompare) {
+      if (!bingFinalMap.has(ghItem.date)) {
+        bingFinalMap.set(ghItem.date, ghItem);
+        addedFromGithub++;
+        log(`  ➕ 补入日期: ${ghItem.date}（来自 github.json）`);
       }
-      dateMap.set(item.date, item);
-      apiAdded++;
     }
 
-    log(`\n📊 合并结果: 保留本地 ${localKept} 条，补充 API ${apiAdded} 条`);
+    let bingFinalArr = Array.from(bingFinalMap.values());
+    bingFinalArr.sort((a, b) => b.date.localeCompare(a.date));
 
-    let finalData = Array.from(dateMap.values());
-    finalData.sort((a, b) => b.date.localeCompare(a.date));
+    const bingLimited = bingFinalArr.slice(0, CONFIG.KEEP_DAYS);
+    const bingCleaned = cleanBackstageUrl(bingLimited);
 
-    const limitedData = finalData.slice(0, CONFIG.KEEP_DAYS);
-    const cleanedData = cleanBackstageUrl(limitedData);
+    fs.writeFileSync(fullJsonPath, JSON.stringify(bingCleaned, null, 2), 'utf8');
+    log(`✅ bing_wallpaper.json 已更新: ${fullJsonPath} (${bingCleaned.length} 条)`);
+    log(`   本次从 github 补入: ${addedFromGithub} 条`);
 
-    fs.writeFileSync(fullJsonOutputPath, JSON.stringify(cleanedData, null, 2), 'utf8');
-    log(`✅ 全量文件已输出：${fullJsonOutputPath} (${cleanedData.length} 条)`);
+    // ========== 8. 生成 today / later / year / month / history / index ==========
+    // 全部基于更新后的 bing_wallpaper.json（青龙权威 + 已补缺）
 
-    // 5. today.json
+    // 8.1 today.json
     const beijingNow = getBeijingDate();
     const todayDateStr = formatBeijingDate(beijingNow);
-    let todayFilterData = cleanedData.filter(item => item.date === todayDateStr);
+    let todayFilterData = bingCleaned.filter(item => item.date === todayDateStr);
     if (todayFilterData.length === 0) {
       log(`⚠️ 未找到今日数据 ${todayDateStr}，使用最新数据`);
-      todayFilterData = cleanedData.slice(0, 1);
+      todayFilterData = bingCleaned.slice(0, 1);
     }
     const todayJsonOutputPath = path.join(JSON_DIR, CONFIG.TODAY_JSON_NAME);
     fs.writeFileSync(todayJsonOutputPath, JSON.stringify(todayFilterData, null, 2), 'utf8');
     log(`✅ today.json 已输出 (${todayFilterData.length} 条)`);
 
-    // 6. later.json
-    const laterFilterData = cleanedData.length > 0 ? [cleanedData[0]] : [];
+    // 8.2 later.json
+    const laterFilterData = bingCleaned.length > 0 ? [bingCleaned[0]] : [];
     const laterJsonOutputPath = path.join(JSON_DIR, CONFIG.LATER_JSON_NAME);
     fs.writeFileSync(laterJsonOutputPath, JSON.stringify(laterFilterData, null, 2), 'utf8');
     log(`✅ later.json 已输出 (${laterFilterData.length} 条)`);
 
-    // ========================================================
-    // 7. 年份文件（使用 finalData 全量合并后的数据）
-    // ========================================================
+    // 8.3 年份文件（用 bingCleaned 全量 + 保留 BackstageUrl 供补缺用，写盘时保留）
     log(`\n==================== 写入年份文件 ====================`);
-    for (const item of finalData) {
+    for (const item of bingCleaned) {
       const year = item.date.slice(0, 4);
-      const cleanItem = item;
-      upsertYearFile(YEAR_DIR, year, cleanItem, logs);
+      upsertYearFile(YEAR_DIR, year, item, logs);
     }
 
-    // 8. 按月拆分
+    // 8.4 按月拆分
     log(`\n==================== 拆分月份文件 ====================`);
     splitIntoMonthFiles(YEAR_DIR, MONTH_DIR, logs);
 
-    // 9. history.json
+    // 8.5 history.json
     log(`\n==================== 生成 history.json ====================`);
     const historyCount = generateHistory(YEAR_DIR, JSON_DIR, logs);
 
-    // 10. index.json
+    // 8.6 index.json
     log(`\n==================== 生成 index.json ====================`);
     generateIndex(YEAR_DIR, JSON_DIR, logs);
 
-    // 11. 日志展示
+    // ========== 9. 日志展示 ==========
     log(`\n===今日数据展示===`);
     log(JSON.stringify(todayFilterData[0] || {}, null, 2));
     log(`===未来数据展示===`);
     log(JSON.stringify(laterFilterData[0] || {}, null, 2));
 
-    // 12. 写入 GITHUB_ENV（供 workflow 后续步骤读取）
-    const latestItem = todayFilterData[0] || cleanedData[0] || {};
+    // ========== 10. 写入 GITHUB_ENV（供 workflow 后续步骤读取） ==========
+    const latestItem = todayFilterData[0] || bingCleaned[0] || {};
     const envFile = process.env.GITHUB_ENV;
     if (envFile) {
       const safe = (s) => String(s || '').replace(/\n/g, ' ').replace(/\r/g, ' ').trim();
