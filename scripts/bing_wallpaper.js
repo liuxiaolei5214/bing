@@ -34,11 +34,10 @@ const CONFIG = {
 
   KEEP_DAYS: 14,
   ENC_RETRIES: 3,
-  ENC_RETRY_DELAY: 20000,        // 同域名重试间隔 20s
-  DOMAIN_SWITCH_DELAY: 60000,    // ✅ 切换域名前冷却 60s
+  ENC_RETRY_DELAY: 20000,
+  DOMAIN_SWITCH_DELAY: 60000,
   ENC_MIN_BYTES: 100000,
 
-  // 输出根目录（相对仓库根）
   JSON_DIR: path.join(__dirname, '..', 'docs', 'json'),
   FULL_JSON_NAME: "bing_wallpaper.json",
   TODAY_JSON_NAME: "today.json",
@@ -242,6 +241,66 @@ async function crawlBingWallpaperBase() {
   return resultArr;
 }
 
+// ===================== ✅ 新增：读取本地已有数据 + 全字段对比 =====================
+// 只读 bing_wallpaper.json（14 天窗口），不读 year 文件
+// 返回 { localMap, diffReport }
+function loadAndCompareLocal(apiList, fullJsonPath) {
+  const localMap = new Map();
+
+  if (fs.existsSync(fullJsonPath)) {
+    try {
+      const arr = JSON.parse(fs.readFileSync(fullJsonPath, 'utf8'));
+      if (Array.isArray(arr)) {
+        arr.forEach(it => { if (it.date) localMap.set(it.date, it); });
+      }
+    } catch (e) {
+      writeLog(`⚠️ 读取 bing_wallpaper.json 失败: ${e.message}`);
+    }
+  }
+
+  const FIELDS = ['title', 'subtitle', 'description', 'bing_url'];
+  const same = [];
+  const onlyNew = [];
+  const onlyLocal = [];
+  const changed = [];
+  const apiDates = new Set();
+
+  for (const apiItem of apiList) {
+    apiDates.add(apiItem.date);
+    const localItem = localMap.get(apiItem.date);
+
+    if (!localItem) {
+      onlyNew.push(apiItem.date);
+      continue;
+    }
+
+    let isSame = true;
+    const diffFields = [];
+    for (const f of FIELDS) {
+      const a = (apiItem[f] || '').toString().trim();
+      const b = (localItem[f] || '').toString().trim();
+      if (a !== b) {
+        isSame = false;
+        diffFields.push(f);
+      }
+    }
+
+    if (isSame) {
+      same.push(apiItem.date);
+    } else {
+      changed.push({ date: apiItem.date, fields: diffFields, local: localItem, api: apiItem });
+    }
+  }
+
+  for (const [date, item] of localMap.entries()) {
+    if (!apiDates.has(date)) {
+      onlyLocal.push({ date, item });
+    }
+  }
+
+  return { localMap, diffReport: { same, onlyLocal, onlyNew, changed } };
+}
+
 // ===================== 百科 HTML 解析 =====================
 function extractEncyclopediaFromHtml(html) {
   const cardMatch = html.match(/<div[^>]*class="[^"]*encyclopedia-content[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>\s*<\/div>/i);
@@ -288,7 +347,6 @@ function extractEncyclopediaFromHtml(html) {
 async function fetchEncyclopedia(backstageUrl) {
   if (!backstageUrl) return { subtitle: '', description: '' };
 
-  // 构造 www 版本 URL
   let wwwUrl = backstageUrl;
   try {
     const u = new URL(backstageUrl);
@@ -303,11 +361,9 @@ async function fetchEncyclopedia(backstageUrl) {
     { name: 'www.bing.com', url: wwwUrl }
   ];
 
-  // 双域名循环
   for (let d = 0; d < domains.length; d++) {
     const { name: domainName, url } = domains[d];
 
-    // ✅ 每个域名只生成一次 MUID + GUID（同域名重试复用）
     const muid = randomMuid();
     const guid = randomGuid();
     const cookie = `MUID=${muid}; MUIDB=${muid}; SRCHUID=V=2&GUID=${guid}&dmnchg=1`;
@@ -315,7 +371,6 @@ async function fetchEncyclopedia(backstageUrl) {
     writeLog(`  🌐 [${d + 1}/${domains.length}] 使用域名：${domainName}`);
     writeLog(`  🍪 本域名标识：MUID=${muid.slice(0, 8)}... GUID=${guid.slice(0, 8)}...`);
 
-    // 同域名 3 次重试
     for (let i = 1; i <= CONFIG.ENC_RETRIES; i++) {
       try {
         const headers = {
@@ -328,7 +383,6 @@ async function fetchEncyclopedia(backstageUrl) {
         const res = await requestGet(url, headers, 20000);
         writeLog(`  📦 响应：${res.status}, ${res.bytes} 字节`);
 
-        // HTTP 异常
         if (res.status !== 200) {
           writeLog(`  ⚠️ HTTP ${res.status}`);
           if (i < CONFIG.ENC_RETRIES) {
@@ -338,7 +392,6 @@ async function fetchEncyclopedia(backstageUrl) {
           continue;
         }
 
-        // 空壳页（限流）
         if (res.bytes < CONFIG.ENC_MIN_BYTES) {
           writeLog(`  🚫 疑似限流（${res.bytes} < ${CONFIG.ENC_MIN_BYTES}）`);
           if (i < CONFIG.ENC_RETRIES) {
@@ -348,7 +401,6 @@ async function fetchEncyclopedia(backstageUrl) {
           continue;
         }
 
-        // 解析
         const enc = extractEncyclopediaFromHtml(res.body);
         if (enc && enc.length > 50) {
           writeLog(`  ✅ 百科抓取成功（${domainName}）：${enc.paragraphs.length} 段，${enc.length} 字符`);
@@ -370,11 +422,9 @@ async function fetchEncyclopedia(backstageUrl) {
       }
     }
 
-    // 当前域名 3 次都失败
     writeLog(`  ❌ ${domainName} 重试 ${CONFIG.ENC_RETRIES} 次均失败`);
 
     if (d < domains.length - 1) {
-      // ✅ 切换域名前冷却
       const cooldown = CONFIG.DOMAIN_SWITCH_DELAY || 60000;
       writeLog(`  🧊 冷却 ${cooldown / 1000}s，准备切换域名...`);
       await sleep(cooldown);
@@ -387,7 +437,6 @@ async function fetchEncyclopedia(backstageUrl) {
 }
 
 // ===================== 批量处理百科 =====================
-// existDateSet: 已有 description 的日期集合（只有这些日期才会被跳过）
 async function attachEncyclopedia(baseList, existDateSet) {
   const needFetchList = baseList.filter(item => !existDateSet.has(item.date));
   const skipList = baseList.filter(item => existDateSet.has(item.date));
@@ -450,18 +499,15 @@ function upsertYearFile(yearDir, year, newItem, logs) {
     const oldHasDesc = hasDescription(oldItem);
     const newHasDesc = hasDescription(newItem);
 
-    // 保护：旧的有描述，新的没有 → 保留旧的
     if (oldHasDesc && !newHasDesc) {
       logs.push(`🛡️ ${yearFile} 保留已有 description（新数据为空）: ${newItem.date}`);
       return existing;
     }
 
-    // 旧的没有，新的有 → 补充
     if (!oldHasDesc && newHasDesc) {
       existing[idx] = newItem;
       logs.push(`🔁 ${yearFile} 补充 description: ${newItem.date}`);
     }
-    // 两边都有 → 用更长的（更完整）
     else if (oldHasDesc && newHasDesc) {
       if (newItem.description.length >= oldItem.description.length) {
         existing[idx] = newItem;
@@ -471,7 +517,6 @@ function upsertYearFile(yearDir, year, newItem, logs) {
         return existing;
       }
     }
-    // 两边都没有 → 无实质变化
     else {
       logs.push(`⏭️ ${yearFile} 无实质变化: ${newItem.date}`);
       return existing;
@@ -628,60 +673,76 @@ function generateIndex(yearDir, jsonDir, logs) {
       process.exit(1);
     }
 
-    // 2. 读取全量文件（近 KEEP_DAYS 天）
+    // 2. ✅ 读取本地已有数据（青龙已推送的 bing_wallpaper.json）+ 全字段对比
     const fullJsonOutputPath = path.join(JSON_DIR, CONFIG.FULL_JSON_NAME);
+    const { localMap, diffReport } = loadAndCompareLocal(wallBaseData, fullJsonOutputPath);
 
-    let oldData = [];
-    if (fs.existsSync(fullJsonOutputPath)) {
-      try {
-        oldData = JSON.parse(fs.readFileSync(fullJsonOutputPath, 'utf8'));
-        if (!Array.isArray(oldData)) oldData = [];
-      } catch (e) {
-        log(`⚠️ 旧JSON损坏，清空历史: ${e.message}`);
-        oldData = [];
+    log(`\n==================== 本地数据对比报告 ====================`);
+    log(`📊 API 新抓: ${wallBaseData.length} 条`);
+    log(`📊 本地已有: ${localMap.size} 条`);
+    log(`✅ 完全一致: ${diffReport.same.length} 条`);
+    log(`🆕 仅 API 有: ${diffReport.onlyNew.length} 条`);
+    log(`🗑️ 仅本地有: ${diffReport.onlyLocal.length} 条`);
+    log(`🔀 有差异: ${diffReport.changed.length} 条`);
+
+    if (diffReport.onlyNew.length > 0) {
+      log(`\n🆕 仅 API 有（本地缺这天）: ${diffReport.onlyNew.join(', ')}`);
+    }
+    if (diffReport.onlyLocal.length > 0) {
+      log(`\n🗑️ 仅本地有（API 没返回这天）: ${diffReport.onlyLocal.map(x => x.date).join(', ')}`);
+    }
+
+    if (diffReport.changed.length > 0) {
+      log(`\n----- 差异明细（前 20 条） -----`);
+      diffReport.changed.slice(0, 20).forEach(c => {
+        log(`  [${c.date}] 差异字段: ${c.fields.join(', ')}`);
+        for (const f of c.fields) {
+          const lv = (c.local[f] || '').toString().slice(0, 50);
+          const av = (c.api[f] || '').toString().slice(0, 50);
+          log(`    ${f}:`);
+          log(`      本地="${lv}${lv.length >= 50 ? '...' : ''}"`);
+          log(`      API ="${av}${av.length >= 50 ? '...' : ''}"`);
+        }
+      });
+      if (diffReport.changed.length > 20) {
+        log(`  ... 还有 ${diffReport.changed.length - 20} 条差异未显示`);
       }
     }
 
-    // ✅ 关键修复：只有"已有 description"的日期才跳过抓取
+    // 3. ✅ 决策：本地已有 description 的日期 → 跳过抓百科（以本地为准）
     const existDateSet = new Set(
-      oldData.filter(hasDescription).map(x => x.date)
+      Array.from(localMap.entries())
+        .filter(([_, it]) => hasDescription(it))
+        .map(([date, _]) => date)
     );
-    log(`📊 bing_wallpaper.json 已有描述的日期: ${existDateSet.size} 条（共 ${oldData.length} 条）`);
+    log(`\n📊 本地已有描述的日期: ${existDateSet.size} 条（将跳过抓取）`);
 
-    // 3. 抓百科
     const fullNewList = await attachEncyclopedia(wallBaseData, existDateSet);
 
-    // 4. 合并旧数据 + 新数据（新数据优先）
+    // 4. ✅ 合并：以本地为准
+    //    - 本地已有 → 完全不覆盖（不管 API 抓到什么）
+    //    - 本地没有 → 用 API 新抓的补
     const dateMap = new Map();
-    oldData.forEach(item => dateMap.set(item.date, item));
+    for (const [date, item] of localMap.entries()) {
+      dateMap.set(date, item);
+    }
 
-    fullNewList.forEach(item => {
-      const oldItem = dateMap.get(item.date);
-      const oldHasDesc = hasDescription(oldItem);
-      const newHasDesc = hasDescription(item);
-
-      // 保护：旧的有描述，新的没有 → 保留旧的
-      if (oldHasDesc && !newHasDesc) {
-        log(`🛡️ 合并保留旧描述: ${item.date}`);
-        return;
+    let localKept = 0;
+    let apiAdded = 0;
+    for (const item of fullNewList) {
+      if (dateMap.has(item.date)) {
+        localKept++;
+        continue;
       }
-
-      // 旧的有、新的也有 → 用更长的
-      if (oldHasDesc && newHasDesc) {
-        if (item.description.length >= oldItem.description.length) {
-          dateMap.set(item.date, item);
-        }
-        return;
-      }
-
-      // 其它情况都用新的
       dateMap.set(item.date, item);
-    });
+      apiAdded++;
+    }
+
+    log(`\n📊 合并结果: 保留本地 ${localKept} 条，补充 API ${apiAdded} 条`);
 
     let finalData = Array.from(dateMap.values());
     finalData.sort((a, b) => b.date.localeCompare(a.date));
 
-    // 裁剪到 KEEP_DAYS（bing_wallpaper.json 只保留近期）
     const limitedData = finalData.slice(0, CONFIG.KEEP_DAYS);
     const cleanedData = cleanBackstageUrl(limitedData);
 
@@ -707,17 +768,12 @@ function generateIndex(yearDir, jsonDir, logs) {
     log(`✅ later.json 已输出 (${laterFilterData.length} 条)`);
 
     // ========================================================
-    // 7. 年份文件（使用 finalData 全量合并后的数据，确保 description 完整）
+    // 7. 年份文件（使用 finalData 全量合并后的数据）
     // ========================================================
     log(`\n==================== 写入年份文件 ====================`);
     for (const item of finalData) {
       const year = item.date.slice(0, 4);
-
-      // 保留 BackstageUrl，方便后续回填
-      // 如果不想在年份文件里暴露 BackstageUrl，取消下一行注释
-      // const { BackstageUrl, ...cleanItem } = item;
       const cleanItem = item;
-
       upsertYearFile(YEAR_DIR, year, cleanItem, logs);
     }
 
