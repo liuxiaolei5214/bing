@@ -729,25 +729,46 @@ function generateIndex(yearDir, jsonDir, logs) {
     }
     log(`📊 API 返回: ${apiList.length} 条（${apiList[apiList.length-1].date} ~ ${apiList[0].date}）`);
 
-    // ========== 2. 读取两个数据源 ==========
-    const { bingMap, githubMap } = loadDataSources(fullJsonPath, githubJsonPath);
-    log(`📊 bing_wallpaper.json: ${bingMap.size} 条`);
-    log(`📊 github.json:         ${githubMap.size} 条`);
+    // ========== 2. 读取全量文件 github.json ==========
+    const githubArrOld = readJsonArray(githubJsonPath);
+    const githubMapOld = new Map();
+    githubArrOld.forEach(it => { if (it && it.date) githubMapOld.set(it.date, it); });
+    log(`📊 github.json（旧）: ${githubMapOld.size} 条`);
 
     // ========== 3. 判断需要抓百科的日期 ==========
-    // 规则：API 14天中，bing 和 github 都没有 description 的日期才需要抓
-    const { needFetch, skippedByBing, skippedByGithub } =
-      computeNeedFetchDates(apiList, bingMap, githubMap);
+    // 规则：API 14天中，github.json 没有 description 的日期 → 需要抓
+    const needFetch = [];
+    const skippedByGithub = [];
+    for (const apiItem of apiList) {
+      const ghItem = githubMapOld.get(apiItem.date);
+      if (hasDescription(ghItem)) {
+        skippedByGithub.push(apiItem.date);
+      } else {
+        needFetch.push(apiItem.date);
+      }
+    }
 
     log(`\n==================== 抓取计划 ====================`);
-    log(`✅ 已有 bing 描述（跳过）: ${skippedByBing.length} 条`);
-    log(`✅ 已有 github 描述（跳过）: ${skippedByGithub.length} 条`);
+    log(`✅ github 已有描述（跳过）: ${skippedByGithub.length} 条`);
     log(`🔍 需要抓百科: ${needFetch.length} 条 ${needFetch.length > 0 ? '→ ' + needFetch.join(', ') : ''}`);
 
     // ========== 4. 抓百科 → 填充到 apiList ==========
+    // 注意：如果 github 已有描述但本次没抓（如跳过），从 github 复用 description
+    // 避免 github.json 写入时丢失已有描述
+    for (const apiItem of apiList) {
+      const ghItem = githubMapOld.get(apiItem.date);
+      if (hasDescription(ghItem) && !apiItem.description) {
+        apiItem.description = ghItem.description;
+        if (!apiItem.subtitle && ghItem.subtitle) {
+          apiItem.subtitle = ghItem.subtitle;
+        }
+      }
+    }
+
+    // 抓需要抓的日期
     await attachEncyclopedia(apiList, needFetch);
 
-    // ========== 5. 写 github.json（14 天滚动覆盖） ==========
+    // ========== 5. 写 github.json（14 天滚动覆盖，完整 14 天） ==========
     const githubLimited = apiList
       .slice()
       .sort((a, b) => b.date.localeCompare(a.date))
@@ -757,7 +778,7 @@ function generateIndex(yearDir, jsonDir, logs) {
     fs.writeFileSync(githubJsonPath, JSON.stringify(githubCleaned, null, 2), 'utf8');
     log(`\n✅ github.json 已写入: ${githubJsonPath} (${githubCleaned.length} 条)`);
 
-    // ========== 6. 对比 github.json vs bing_wallpaper.json ==========
+    // ========== 6. 对比 github.json vs bing_wallpaper.json（全字段） ==========
     const githubArrForCompare = readJsonArray(githubJsonPath);
     const bingArrForCompare   = readJsonArray(fullJsonPath);
 
@@ -801,9 +822,10 @@ function generateIndex(yearDir, jsonDir, logs) {
     //   - bing 已有的日期：完全不覆盖（青龙绝对权威，哪怕短）
     //   - bing 缺的日期：用 github 的数据补进去
     log(`\n==================== 补缺到 bing_wallpaper.json ====================`);
-    const bingFinalMap = new Map(bingMap);
-    let addedFromGithub = 0;
+    const bingFinalMap = new Map();
+    bingArrForCompare.forEach(it => { if (it && it.date) bingFinalMap.set(it.date, it); });
 
+    let addedFromGithub = 0;
     for (const ghItem of githubArrForCompare) {
       if (!bingFinalMap.has(ghItem.date)) {
         bingFinalMap.set(ghItem.date, ghItem);
@@ -823,7 +845,7 @@ function generateIndex(yearDir, jsonDir, logs) {
     log(`   本次从 github 补入: ${addedFromGithub} 条`);
 
     // ========== 8. 生成 today / later / year / month / history / index ==========
-    // 全部基于更新后的 bing_wallpaper.json（青龙权威 + 已补缺）
+    // 全部基于更新后的 bing_wallpaper.json
 
     // 8.1 today.json
     const beijingNow = getBeijingDate();
@@ -843,7 +865,7 @@ function generateIndex(yearDir, jsonDir, logs) {
     fs.writeFileSync(laterJsonOutputPath, JSON.stringify(laterFilterData, null, 2), 'utf8');
     log(`✅ later.json 已输出 (${laterFilterData.length} 条)`);
 
-    // 8.3 年份文件（用 bingCleaned 全量 + 保留 BackstageUrl 供补缺用，写盘时保留）
+    // 8.3 年份文件
     log(`\n==================== 写入年份文件 ====================`);
     for (const item of bingCleaned) {
       const year = item.date.slice(0, 4);
@@ -868,7 +890,7 @@ function generateIndex(yearDir, jsonDir, logs) {
     log(`===未来数据展示===`);
     log(JSON.stringify(laterFilterData[0] || {}, null, 2));
 
-    // ========== 10. 写入 GITHUB_ENV（供 workflow 后续步骤读取） ==========
+    // ========== 10. 写入 GITHUB_ENV ==========
     const latestItem = todayFilterData[0] || bingCleaned[0] || {};
     const envFile = process.env.GITHUB_ENV;
     if (envFile) {
