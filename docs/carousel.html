@@ -244,6 +244,8 @@
 
         .movie-thumbnails .thumb-item {
             flex: 0 0 auto; /* 禁止拉伸和压缩，宽度完全由 JS 计算 */
+            width: 80px; /* ✅ 新增：默认宽度兜底 */
+            min-width: 40px; /* ✅ 新增：最小宽度兜底 */
             height: 60px;
             border-radius: 4px;
             background-size: cover;
@@ -516,35 +518,38 @@
             let autoPlayTimer = null;
             const AUTOPLAY_INTERVAL = 6000;
 
-            // ===== 新增：动态计算等分宽度 =====
+            // ===== 优化后的：动态计算等分宽度 =====
             function calculateThumbWidth() {
-                const thumbnails = document.getElementById('movie-thumbnails'); // 注意你的 ID 是 movieThumbnails
+                const thumbnails = document.getElementById('movieThumbnails');
                 if (!thumbnails) return;
 
-                const isMobile = window.innerWidth <= 640;
-                // 决定一屏展示几张 (移动端 5 张，桌面端 8 张)
-                const displayCount = isMobile ? 5 : 8; 
-                
-                // 获取容器内部总宽度
-                const containerWidth = thumbnails.clientWidth;
-                // 获取当前的 padding 和 gap
-                const computedStyle = window.getComputedStyle(thumbnails);
-                const paddingLeft = parseFloat(computedStyle.paddingLeft);
-                const paddingRight = parseFloat(computedStyle.paddingRight);
-                const gap = parseFloat(computedStyle.gap) || 0;
-                
-                // 减去两边的留白，算出纯粹的“滑动可用区域”
-                const availableWidth = containerWidth - paddingLeft - paddingRight;
-                
-                // 总共有 displayCount 张图，中间有 (displayCount - 1) 个间隙
-                const totalGap = (displayCount - 1) * gap;
-                
-                // 单张图片的完美宽度 (向下取整，防止因为 0.1px 导致折行溢出)
-                const itemWidth = Math.floor((availableWidth - totalGap) / displayCount);
+                // 使用 requestAnimationFrame 确保 DOM 渲染完毕，获取到真实的 clientWidth
+                requestAnimationFrame(() => {
+                    const isMobile = window.innerWidth <= 640;
+                    // 移动端展示 5 张，桌面端展示 8 张
+                    const displayCount = isMobile ? 5 : 8; 
+                    
+                    const containerWidth = thumbnails.clientWidth;
+                    
+                    // 如果容器宽度还没撑开（比如隐藏状态），先不计算
+                    if (containerWidth === 0) return; 
 
-                // 应用到所有图片
-                document.querySelectorAll('.thumb-item').forEach(el => {
-                    el.style.width = `${itemWidth}px`;
+                    const computedStyle = window.getComputedStyle(thumbnails);
+                    const paddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
+                    const paddingRight = parseFloat(computedStyle.paddingRight) || 0;
+                    const gap = parseFloat(computedStyle.gap) || 0;
+                    
+                    const availableWidth = containerWidth - paddingLeft - paddingRight;
+                    const totalGap = (displayCount - 1) * gap;
+                    
+                    // 减去一个微小的安全值，防止因为像素小数导致折行
+                    const itemWidth = Math.floor((availableWidth - totalGap) / displayCount) - 1;
+
+                    if (itemWidth > 0) {
+                        document.querySelectorAll('.thumb-item').forEach(el => {
+                            el.style.width = `${itemWidth}px`;
+                        });
+                    }
                 });
             }
 
@@ -583,8 +588,8 @@
                         thumb.addEventListener('click', () => goToSlide(idx));
                         thumbnails.appendChild(thumb);
                     });
-                    // ✅ 新增：生成完毕，立刻计算尺寸
-                    calculateThumbWidth();
+                    // ✅ 改为延迟调用
+                    setTimeout(calculateThumbWidth, 50);
                     updateSlide(0);
                     resetAutoPlay();
 
