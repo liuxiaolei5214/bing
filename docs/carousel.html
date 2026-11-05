@@ -221,31 +221,26 @@
             transform: scale(1.02);
         }
 
-        /* ===== 底部缩略图：允许滚动，严格吸附，无半张 ===== */
+        /* ===== 底部缩略图：无背景，直接悬浮于全局渐变之上 ===== */
         .movie-thumbnails {
             display: flex;
             align-items: center;
             width: 100%;
-            overflow-x: auto; /* 允许横向滚动 */
-            scrollbar-width: none; /* 隐藏滚动条 (Firefox) */
-            background: transparent;
-            border-top: none;
+            overflow-x: auto;
+            scrollbar-width: none;
+            background: transparent; /* 彻底移除遮罩 */
+            border-top: none;        /* 彻底移除分割线 */
             padding: 10px 40px 30px; 
-            gap: 8px; 
-            pointer-events: auto;
-            
-            /* ✅ 核心：滚动吸附，每次滑动都会自动对齐到边缘，绝不停在半张图 */
-            scroll-snap-type: x mandatory;
-            scroll-behavior: smooth;
+            gap: 8px;
+            pointer-events: auto;    /* 恢复点击 */
         }
         .movie-thumbnails::-webkit-scrollbar {
-            display: none; /* 隐藏滚动条 (Chrome/Safari) */
+            display: none;
         }
 
         .movie-thumbnails .thumb-item {
-            flex: 0 0 auto; /* 禁止拉伸和压缩，宽度完全由 JS 计算 */
-            width: 80px; /* ✅ 新增：默认宽度兜底 */
-            min-width: 40px; /* ✅ 新增：最小宽度兜底 */
+            flex: 1;
+            min-width: 60px;
             height: 60px;
             border-radius: 4px;
             background-size: cover;
@@ -255,9 +250,6 @@
             transition: all 0.25s;
             opacity: 0.7; 
             box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-            
-            /* ✅ 核心：每个元素都是吸附点 */
-            scroll-snap-align: start;
         }
 
         .movie-thumbnails .thumb-item.active {
@@ -369,6 +361,7 @@
             }
 
             .movie-thumbnails .thumb-item {
+                min-width: 40px;
                 height: 38px;
             }
 
@@ -518,41 +511,6 @@
             let autoPlayTimer = null;
             const AUTOPLAY_INTERVAL = 6000;
 
-            // ===== 优化后的：动态计算等分宽度 =====
-            function calculateThumbWidth() {
-                const thumbnails = document.getElementById('movieThumbnails');
-                if (!thumbnails) return;
-
-                // 使用 requestAnimationFrame 确保 DOM 渲染完毕，获取到真实的 clientWidth
-                requestAnimationFrame(() => {
-                    const isMobile = window.innerWidth <= 640;
-                    // 移动端展示 5 张，桌面端展示 8 张
-                    const displayCount = isMobile ? 5 : 8; 
-                    
-                    const containerWidth = thumbnails.clientWidth;
-                    
-                    // 如果容器宽度还没撑开（比如隐藏状态），先不计算
-                    if (containerWidth === 0) return; 
-
-                    const computedStyle = window.getComputedStyle(thumbnails);
-                    const paddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
-                    const paddingRight = parseFloat(computedStyle.paddingRight) || 0;
-                    const gap = parseFloat(computedStyle.gap) || 0;
-                    
-                    const availableWidth = containerWidth - paddingLeft - paddingRight;
-                    const totalGap = (displayCount - 1) * gap;
-                    
-                    // 减去一个微小的安全值，防止因为像素小数导致折行
-                    const itemWidth = Math.floor((availableWidth - totalGap) / displayCount) - 1;
-
-                    if (itemWidth > 0) {
-                        document.querySelectorAll('.thumb-item').forEach(el => {
-                            el.style.width = `${itemWidth}px`;
-                        });
-                    }
-                });
-            }
-
             const slide = document.getElementById('movieSlide');
             const titleEl = document.getElementById('movieTitle');
             const dateEl = document.getElementById('movieDate');
@@ -588,8 +546,7 @@
                         thumb.addEventListener('click', () => goToSlide(idx));
                         thumbnails.appendChild(thumb);
                     });
-                    // ✅ 改为延迟调用
-                    setTimeout(calculateThumbWidth, 50);
+
                     updateSlide(0);
                     resetAutoPlay();
 
@@ -689,15 +646,6 @@
                     if (diff > 0) { nextSlide(); resetAutoPlay(); } else { prevSlide(); resetAutoPlay(); }
                 }
             }, { passive: true });
-
-            // ===== 新增：窗口大小改变时重新计算 =====
-            let resizeTimer;
-            window.addEventListener('resize', () => {
-                clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(() => {
-                    calculateThumbWidth();
-                }, 150); // 防抖处理，避免频繁重绘卡顿
-            });
 
             // 启动
             loadCarousel();
